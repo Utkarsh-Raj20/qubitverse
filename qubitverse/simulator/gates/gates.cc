@@ -37,8 +37,8 @@ namespace simulator
 
         case gates::ROTATION_X:
             __g.matrix[0][0] = std::__complex_cos<double>(theta / 2.0);
-            __g.matrix[0][1] = -1i * std::__complex_sin<double>(theta / 2.0);
-            __g.matrix[1][0] = -1i * std::__complex_sin<double>(theta / 2.0);
+            __g.matrix[0][1] = (complex){0, -1} * std::__complex_sin<double>(theta / 2.0);
+            __g.matrix[1][0] = (complex){0, -1} * std::__complex_sin<double>(theta / 2.0);
             __g.matrix[1][1] = std::__complex_cos<double>(theta / 2.0);
             break;
 
