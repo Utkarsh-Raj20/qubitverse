@@ -13,7 +13,6 @@
 namespace simulator
 {
     using complex = std::complex<double>;
-    using namespace std::complex_literals;
 
     enum gates : unsigned char
     {
