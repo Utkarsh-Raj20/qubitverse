@@ -89,8 +89,8 @@ namespace simulator
         {
             for (std::size_t j = 0; j < stride; ++j)
             {
-                int idx0 = i + j;
-                int idx1 = i + j + stride;
+                std::size_t idx0 = i + j;
+                std::size_t idx1 = i + j + stride;
 
                 // Apply the gate to the two elements
                 complex a = __s[idx0];
@@ -155,8 +155,8 @@ namespace simulator
         {
             for (std::size_t j = 0; j < stride; ++j)
             {
-                int idx0 = i + j;
-                int idx1 = i + j + stride;
+                std::size_t idx0 = i + j;
+                std::size_t idx1 = i + j + stride;
 
                 // Apply the gate to the two elements
                 complex a = __s[idx0];
