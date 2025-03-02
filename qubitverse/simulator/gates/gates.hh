@@ -22,17 +22,22 @@ namespace simulator
       private:
         enum gate_type : unsigned char
         {
-            IDENTITY, // identity-gate
-            PAULI_X,  // NOT-gate
-            PAULI_Y,
-            PAULI_Z,          // Phase Flip gate
-            HADAMARD,         // H-gate (Superposition)
-            PHASE_PI_2_SHIFT, // pi/2 phase shift
-            PHASE_PI_4_SHIFT, // pi/4 phase shift
-            PHASE_GENERAL_SHIFT,
-            ROTATION_X,
-            ROTATION_Y,
-            ROTATION_Z
+            IDENTITY,            // Identity gate: leaves the qubit unchanged.
+            PAULI_X,             // Pauli-X gate (NOT gate): flips the qubit state.
+            PAULI_Y,             // Pauli-Y gate: rotates the qubit about the Y-axis.
+            PAULI_Z,             // Pauli-Z gate: performs a phase flip.
+            HADAMARD,            // Hadamard gate: creates superposition.
+            PHASE_PI_2_SHIFT,    // S-gate: applies a π/2 phase shift.
+            PHASE_PI_4_SHIFT,    // T-gate: applies a π/4 phase shift.
+            PHASE_GENERAL_SHIFT, // General phase shift gate: parameterized phase shift.
+            ROTATION_X,          // Rotation around the X-axis, by theta angle.
+            ROTATION_Y,          // Rotation around the Y-axis, by theta angle.
+            ROTATION_Z,          // Rotation around the Z-axis, by theta angle.
+            CONTROLLED_NOT,      // Controlled-NOT (CNOT) gate: flips target qubit based on control.
+            CONTROLLED_Z,        // Controlled-Z gate: applies a phase flip conditional on the control.
+            SWAP_GATE,           // SWAP gate: exchanges the states of two qubits.
+            TOFFOLI_GATE,        // Toffoli gate (CCNOT): three-qubit gate, flips third qubit based on first two.
+            FREDKIN_GATE         // Fredkin gate (CSWAP): swaps two qubits conditionally based on a control qubit.
         };
 
         struct qgate_2x2
