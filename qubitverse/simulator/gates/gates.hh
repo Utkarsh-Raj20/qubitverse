@@ -8,6 +8,7 @@
 #define SIMULATOR_GATES
 
 #include <complex>
+#include <random>
 #include <cmath> // for sqrt and M_PI
 
 namespace simulator
@@ -77,6 +78,7 @@ namespace simulator
         const complex (&get_qubits() const)[1 << n_qubits];
         const constexpr std::size_t get_size() const;
         const constexpr std::size_t memory_consumption() const;
+        std::size_t measure();
         ~qubit() = default;
     };
 
@@ -117,8 +119,8 @@ namespace simulator
 
         case qubit<n_qubits>::gate_type::ROTATION_X:
             __g.matrix[0][0] = std::__complex_cos<double>(__theta / 2.0);
-            __g.matrix[0][1] = (complex){0, -1} * std::__complex_sin<double>(__theta / 2.0);
-            __g.matrix[1][0] = (complex){0, -1} * std::__complex_sin<double>(__theta / 2.0);
+            __g.matrix[0][1] = (complex){0.0, -1.0} * std::__complex_sin<double>(__theta / 2.0);
+            __g.matrix[1][0] = (complex){0.0, -1.0} * std::__complex_sin<double>(__theta / 2.0);
             __g.matrix[1][1] = std::__complex_cos<double>(__theta / 2.0);
             break;
 
@@ -267,6 +269,40 @@ namespace simulator
     const constexpr std::size_t qubit<n_qubits>::memory_consumption() const
     {
         return sizeof(qubit<n_qubits>::complex) * (1 << n_qubits);
+    }
+
+    template <std::size_t n_qubits>
+    std::size_t qubit<n_qubits>::measure()
+    {
+        double tot_prob = 0.0;
+        for (std::size_t i = 0; i < (1 << n_qubits); i++)
+        {
+            tot_prob += std::norm(this->M_qubits[i]);
+        }
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<double> dist(0.0, tot_prob);
+        double r = dist(gen);
+
+        double accum = 0.0;
+        std::size_t res = 0;
+        for (std::size_t i = 0; i < (1 << n_qubits); i++)
+        {
+            accum += std::norm(this->M_qubits[i]);
+            if (accum >= r)
+            {
+                res = i;
+                break;
+            }
+        }
+
+        for (std::size_t i = 0; i < (1 << n_qubits); i++)
+        {
+            this->M_qubits[i] = (i == res) ? (complex){1.0, 0.0} : (complex){0.0, 0.0};
+        }
+
+        return res;
     }
 }
 
