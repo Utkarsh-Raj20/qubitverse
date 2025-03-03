@@ -33,11 +33,9 @@ namespace simulator
             ROTATION_X,          // Rotation around the X-axis, by theta angle.
             ROTATION_Y,          // Rotation around the Y-axis, by theta angle.
             ROTATION_Z,          // Rotation around the Z-axis, by theta angle.
-            CONTROLLED_NOT,      // Controlled-NOT (CNOT) gate: flips target qubit based on control.
+            CONTROLLED_NOT,      // Controlled-NOT (CNOT) gate: flips target qubit based on control, creates the state of entanglement between two qubits.
             CONTROLLED_Z,        // Controlled-Z gate: applies a phase flip conditional on the control.
             SWAP_GATE,           // SWAP gate: exchanges the states of two qubits.
-            TOFFOLI_GATE,        // Toffoli gate (CCNOT): three-qubit gate, flips third qubit based on first two.
-            FREDKIN_GATE         // Fredkin gate (CSWAP): swaps two qubits conditionally based on a control qubit.
         };
 
         struct qgate_2x2
@@ -59,6 +57,7 @@ namespace simulator
         static void apply_predefined_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const std::size_t &qubit_target);
         static qgate_2x2 &get_theta_gate(qgate_2x2 &__g, const enum gate_type &__g_type, const double &__theta);
         static void apply_theta_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const double &__theta, const std::size_t &qubit_target);
+        static void apply_2qubit_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const std::size_t &q_control, const std::size_t &q_target);
 
       private:
         // a vector-space (hilbert-space) defined over complex numbers C
@@ -80,6 +79,9 @@ namespace simulator
         qubit &apply_rotation_x(const double &_theta, const std::size_t &q_target);
         qubit &apply_rotation_y(const double &_theta, const std::size_t &q_target);
         qubit &apply_rotation_z(const double &_theta, const std::size_t &q_target);
+        qubit &apply_cnot(const std::size_t &q_control, const std::size_t &q_target);
+        qubit &apply_cz(const std::size_t &q_control, const std::size_t &q_target);
+        qubit &apply_swap(const std::size_t &q_control, const std::size_t &q_target);
         const complex (&get_qubits() const)[1 << n_qubits];
         const constexpr std::size_t get_size() const;
         const constexpr std::size_t memory_consumption() const;
@@ -176,6 +178,60 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+    void qubit<n_qubits>::apply_2qubit_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const std::size_t &q_control, const std::size_t &q_target)
+    {
+        if (n_qubits < 2)
+        {
+            std::fprintf(stderr, "error: specified gate operation requires a minimum of 2 qubit-system, but it was %zu qubit-system.\n", n_qubits);
+            std::exit(EXIT_FAILURE);
+        }
+
+        if (__g_type == qubit<n_qubits>::gate_type::CONTROLLED_NOT)
+        {
+            for (std::size_t i = 0; i < (1 << n_qubits); i++)
+            {
+                // Only swap if control is 1 and target is 0.
+                if ((i & (1 << q_control)) != 0 && (i & (1 << q_target)) == 0)
+                {
+                    std::size_t swap_idx = i ^ (1 << q_target);
+                    std::swap(__s[i], __s[swap_idx]);
+                }
+            }
+        }
+        else if (__g_type == qubit<n_qubits>::gate_type::CONTROLLED_Z)
+        {
+            for (std::size_t i = 0; i < (1 << n_qubits); i++)
+            {
+                if (((i >> q_control) & 1) && ((i >> q_target) & 1))
+                {
+                    __s[i] *= -1;
+                }
+            }
+        }
+        else if (__g_type == qubit<n_qubits>::gate_type::SWAP_GATE)
+        {
+            for (std::size_t i = 0; i < (1 << n_qubits); ++i)
+            {
+                // Extract the bits at positions q1 and q2.
+                std::size_t bit_q1 = (i >> q_control) & 1;
+                std::size_t bit_q2 = (i >> q_target) & 1;
+
+                // Only need to swap if the bits differ.
+                if (bit_q1 != bit_q2)
+                {
+                    // Flip the bits at q1 and q2.
+                    std::size_t j = i ^ ((1 << q_control) | (1 << q_target));
+                    // To avoid double swapping, swap only if i < j.
+                    if (i < j)
+                    {
+                        std::swap(__s[i], __s[j]);
+                    }
+                }
+            }
+        }
+    }
+
+    template <std::size_t n_qubits>
     qubit<n_qubits>::qubit()
     {
         this->M_qubits[0] = {1, 0};
@@ -255,6 +311,27 @@ namespace simulator
     qubit<n_qubits> &qubit<n_qubits>::apply_rotation_z(const double &_theta, const std::size_t &q_target)
     {
         qubit<n_qubits>::apply_theta_gate(this->M_qubits, qubit<n_qubits>::gate_type::ROTATION_Z, _theta, q_target);
+        return *this;
+    }
+
+    template <std::size_t n_qubits>
+    qubit<n_qubits> &qubit<n_qubits>::apply_cnot(const std::size_t &q_control, const std::size_t &q_target)
+    {
+        qubit<n_qubits>::apply_2qubit_gate(this->M_qubits, qubit<n_qubits>::gate_type::CONTROLLED_NOT, q_control, q_target);
+        return *this;
+    }
+
+    template <std::size_t n_qubits>
+    qubit<n_qubits> &qubit<n_qubits>::apply_cz(const std::size_t &q_control, const std::size_t &q_target)
+    {
+        qubit<n_qubits>::apply_2qubit_gate(this->M_qubits, qubit<n_qubits>::gate_type::CONTROLLED_Z, q_control, q_target);
+        return *this;
+    }
+
+    template <std::size_t n_qubits>
+    qubit<n_qubits> &qubit<n_qubits>::apply_swap(const std::size_t &q_control, const std::size_t &q_target)
+    {
+        qubit<n_qubits>::apply_2qubit_gate(this->M_qubits, qubit<n_qubits>::gate_type::SWAP_GATE, q_control, q_target);
         return *this;
     }
 
