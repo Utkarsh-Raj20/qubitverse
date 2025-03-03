@@ -190,11 +190,10 @@ namespace simulator
         {
             for (std::size_t i = 0; i < (1 << n_qubits); i++)
             {
-                // Only swap if control is 1 and target is 0.
-                if ((i & (1 << q_control)) != 0 && (i & (1 << q_target)) == 0)
-                {
-                    std::size_t swap_idx = i ^ (1 << q_target);
-                    std::swap(__s[i], __s[swap_idx]);
+                if ((i & (1 << q_control)) != 0)
+                { // If control qubit is 1
+                    std::size_t target_bit_flipped_index = i ^ (1 << q_target);
+                    std::swap(__s[i], __s[target_bit_flipped_index]);
                 }
             }
         }
