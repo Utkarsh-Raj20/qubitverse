@@ -35,7 +35,7 @@ namespace simulator
             ROTATION_Z,          // Rotation around the Z-axis, by theta angle.
             CONTROLLED_NOT,      // Controlled-NOT (CNOT) gate: flips target qubit based on control, creates the state of entanglement between two qubits.
             CONTROLLED_Z,        // Controlled-Z gate: applies a phase flip conditional on the control.
-            SWAP_GATE,           // SWAP gate: exchanges the states of two qubits.
+            SWAP_GATE            // SWAP gate: exchanges the states of two qubits.
         };
 
         struct qgate_2x2
