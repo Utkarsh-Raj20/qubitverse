@@ -193,7 +193,11 @@ namespace simulator
                 if ((i & (1 << q_control)) != 0)
                 { // If control qubit is 1
                     std::size_t target_bit_flipped_index = i ^ (1 << q_target);
-                    std::swap(__s[i], __s[target_bit_flipped_index]);
+                    // Only swap once per pair.
+                    if (i < target_bit_flipped_index)
+                    {
+                        std::swap(__s[i], __s[target_bit_flipped_index]);
+                    }
                 }
             }
         }
@@ -211,14 +215,14 @@ namespace simulator
         {
             for (std::size_t i = 0; i < (1 << n_qubits); ++i)
             {
-                // Extract the bits at positions q1 and q2.
+                // Extract the bits at positions q_control and q_target.
                 std::size_t bit_q1 = (i >> q_control) & 1;
                 std::size_t bit_q2 = (i >> q_target) & 1;
 
                 // Only need to swap if the bits differ.
                 if (bit_q1 != bit_q2)
                 {
-                    // Flip the bits at q1 and q2.
+                    // Flip the bits at q_control and q_target.
                     std::size_t j = i ^ ((1 << q_control) | (1 << q_target));
                     // To avoid double swapping, swap only if i < j.
                     if (i < j)
