@@ -44,7 +44,7 @@ namespace simulator
             complex matrix[2][2]; // 2x2 matrix that stores various types of gates
         };
 
-        static inline const constexpr qgate_2x2 pre_defined_qgates[7] = {
+        static constexpr qgate_2x2 pre_defined_qgates[7] = {
             {IDENTITY, {{1, 0}, {0, 1}}},
             {PAULI_X, {{0, 1}, {1, 0}}},
             {PAULI_Y, {{0, {0, -1}}, {{0, 1}, 0}}},
@@ -55,13 +55,13 @@ namespace simulator
         };
 
         static void apply_predefined_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const std::size_t &qubit_target);
-        static qgate_2x2 &get_theta_gate(qgate_2x2 &__g, const enum gate_type &__g_type, const double &__theta);
+        static qgate_2x2 &get_theta_gate(qgate_2x2 &__g, const gate_type &__g_type, const double &__theta);
         static void apply_theta_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const double &__theta, const std::size_t &qubit_target);
         static void apply_2qubit_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const std::size_t &q_control, const std::size_t &q_target);
 
       private:
         // a vector-space (hilbert-space) defined over complex numbers C
-        // 1 << n_qubit translates to 2^N, where N is the the number of qubit the hilbert-space(quantum-system) supports
+        // 1 << n_qubit translates to 2^N, where N is the number of qubit the hilbert-space(quantum-system) supports
         // memory consumption on x86_64 architecture for N-qubit system is: f(N) = 16 * 2^abs(N) bytes, that is exponential growth
         // Initially, the hilbert-space is defined as 1 + 0i, 0 + 0i, 0 + 0i, 0 + 0i, 0 + 0i, ..., 0 + 0i
         complex M_qubits[1 << n_qubits] = {};
@@ -85,6 +85,7 @@ namespace simulator
         const complex (&get_qubits() const)[1 << n_qubits];
         const constexpr std::size_t get_size() const;
         const constexpr std::size_t memory_consumption() const;
+        const constexpr std::size_t no_of_qubits() const;
         std::size_t measure();
         ~qubit() = default;
     };
@@ -92,9 +93,9 @@ namespace simulator
     template <std::size_t n_qubits>
     void qubit<n_qubits>::apply_predefined_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const std::size_t &qubit_target)
     {
-        std::size_t stride = 1 << qubit_target; // Distance between paired indices
+        const std::size_t stride = 1 << qubit_target; // Distance between paired indices
 
-        for (std::size_t i = 0; i < (1 << n_qubits); i += 2 * stride)
+        for (std::size_t i = 0; i < 1 << n_qubits; i += 2 * stride)
         {
             for (std::size_t j = 0; j < stride; ++j)
             {
@@ -105,40 +106,40 @@ namespace simulator
                 complex a = __s[idx0];
                 complex b = __s[idx1];
 
-                __s[idx0] = pre_defined_qgates[(std::size_t)__g_type].matrix[0][0] * a + pre_defined_qgates[(std::size_t)__g_type].matrix[0][1] * b;
-                __s[idx1] = pre_defined_qgates[(std::size_t)__g_type].matrix[1][0] * a + pre_defined_qgates[(std::size_t)__g_type].matrix[1][1] * b;
+                __s[idx0] = pre_defined_qgates[static_cast<std::size_t>(__g_type)].matrix[0][0] * a + pre_defined_qgates[static_cast<std::size_t>(__g_type)].matrix[0][1] * b;
+                __s[idx1] = pre_defined_qgates[static_cast<std::size_t>(__g_type)].matrix[1][0] * a + pre_defined_qgates[static_cast<std::size_t>(__g_type)].matrix[1][1] * b;
             }
         }
     }
 
     template <std::size_t n_qubits>
-    qubit<n_qubits>::qgate_2x2 &qubit<n_qubits>::get_theta_gate(qubit<n_qubits>::qgate_2x2 &__g, const enum gate_type &__g_type, const double &__theta)
+    qubit<n_qubits>::qgate_2x2 &qubit<n_qubits>::get_theta_gate(qgate_2x2 &__g, const gate_type &__g_type, const double &__theta)
     {
         __g.type = __g_type;
         switch (__g_type)
         {
-        case qubit<n_qubits>::gate_type::PHASE_GENERAL_SHIFT:
+        case gate_type::PHASE_GENERAL_SHIFT:
             __g.matrix[0][0] = 1.0;
             __g.matrix[0][1] = 0.0;
             __g.matrix[1][0] = 0.0;
             __g.matrix[1][1] = std::polar(1.0, __theta);
             break;
 
-        case qubit<n_qubits>::gate_type::ROTATION_X:
+        case gate_type::ROTATION_X:
             __g.matrix[0][0] = std::__complex_cos<double>(__theta / 2.0);
             __g.matrix[0][1] = (complex){0.0, -1.0} * std::__complex_sin<double>(__theta / 2.0);
             __g.matrix[1][0] = (complex){0.0, -1.0} * std::__complex_sin<double>(__theta / 2.0);
             __g.matrix[1][1] = std::__complex_cos<double>(__theta / 2.0);
             break;
 
-        case qubit<n_qubits>::gate_type::ROTATION_Y:
+        case gate_type::ROTATION_Y:
             __g.matrix[0][0] = std::__complex_cos<double>(__theta / 2.0);
             __g.matrix[0][1] = -std::__complex_sin<double>(__theta / 2.0);
             __g.matrix[1][0] = std::__complex_sin<double>(__theta / 2.0);
             __g.matrix[1][1] = std::__complex_cos<double>(__theta / 2.0);
             break;
 
-        case qubit<n_qubits>::gate_type::ROTATION_Z:
+        case gate_type::ROTATION_Z:
             __g.matrix[0][0] = std::polar(1.0, -__theta / 2.0);
             __g.matrix[0][1] = 0.0;
             __g.matrix[1][0] = 0.0;
@@ -148,7 +149,6 @@ namespace simulator
         default:
             std::fprintf(stderr, "error: invalid gate selected '%u'\n", (unsigned)__g_type);
             std::exit(EXIT_FAILURE);
-            break;
         }
         return __g;
     }
@@ -156,11 +156,11 @@ namespace simulator
     template <std::size_t n_qubits>
     void qubit<n_qubits>::apply_theta_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const double &__theta, const std::size_t &qubit_target)
     {
-        std::size_t stride = 1 << qubit_target; // Distance between paired indices
-        qubit<n_qubits>::qgate_2x2 __g;
-        __g = qubit<n_qubits>::get_theta_gate(__g, __g_type, __theta);
+        const std::size_t stride = 1 << qubit_target; // Distance between paired indices
+        qgate_2x2 __g;
+        __g = qubit::get_theta_gate(__g, __g_type, __theta);
 
-        for (std::size_t i = 0; i < (1 << n_qubits); i += 2 * stride)
+        for (std::size_t i = 0; i < 1 << n_qubits; i += 2 * stride)
         {
             for (std::size_t j = 0; j < stride; ++j)
             {
@@ -186,7 +186,7 @@ namespace simulator
             std::exit(EXIT_FAILURE);
         }
 
-        if (__g_type == qubit<n_qubits>::gate_type::CONTROLLED_NOT)
+        if (__g_type == gate_type::CONTROLLED_NOT)
         {
             for (std::size_t i = 0; i < (1 << n_qubits); i++)
             {
@@ -201,7 +201,7 @@ namespace simulator
                 }
             }
         }
-        else if (__g_type == qubit<n_qubits>::gate_type::CONTROLLED_Z)
+        else if (__g_type == gate_type::CONTROLLED_Z)
         {
             for (std::size_t i = 0; i < (1 << n_qubits); i++)
             {
@@ -211,13 +211,13 @@ namespace simulator
                 }
             }
         }
-        else if (__g_type == qubit<n_qubits>::gate_type::SWAP_GATE)
+        else if (__g_type == gate_type::SWAP_GATE)
         {
             for (std::size_t i = 0; i < (1 << n_qubits); ++i)
             {
                 // Extract the bits at positions q_control and q_target.
-                std::size_t bit_q1 = (i >> q_control) & 1;
-                std::size_t bit_q2 = (i >> q_target) & 1;
+                const std::size_t bit_q1 = (i >> q_control) & 1;
+                const std::size_t bit_q2 = (i >> q_target) & 1;
 
                 // Only need to swap if the bits differ.
                 if (bit_q1 != bit_q2)
@@ -243,98 +243,98 @@ namespace simulator
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_identity(const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_predefined_gate(this->M_qubits, qubit<n_qubits>::gate_type::IDENTITY, q_target);
+        qubit::apply_predefined_gate(this->M_qubits, gate_type::IDENTITY, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_pauli_x(const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_predefined_gate(this->M_qubits, qubit<n_qubits>::gate_type::PAULI_X, q_target);
+        qubit::apply_predefined_gate(this->M_qubits, gate_type::PAULI_X, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_pauli_y(const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_predefined_gate(this->M_qubits, qubit<n_qubits>::gate_type::PAULI_Y, q_target);
+        qubit::apply_predefined_gate(this->M_qubits, gate_type::PAULI_Y, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_pauli_z(const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_predefined_gate(this->M_qubits, qubit<n_qubits>::gate_type::PAULI_Z, q_target);
+        qubit::apply_predefined_gate(this->M_qubits, gate_type::PAULI_Z, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_hadamard(const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_predefined_gate(this->M_qubits, qubit<n_qubits>::gate_type::HADAMARD, q_target);
+        qubit::apply_predefined_gate(this->M_qubits, gate_type::HADAMARD, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_phase_pi_2_shift(const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_predefined_gate(this->M_qubits, qubit<n_qubits>::gate_type::PHASE_PI_2_SHIFT, q_target);
+        qubit::apply_predefined_gate(this->M_qubits, gate_type::PHASE_PI_2_SHIFT, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_phase_pi_4_shift(const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_predefined_gate(this->M_qubits, qubit<n_qubits>::gate_type::PHASE_PI_4_SHIFT, q_target);
+        qubit::apply_predefined_gate(this->M_qubits, gate_type::PHASE_PI_4_SHIFT, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_phase_general_shift(const double &_theta, const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_theta_gate(this->M_qubits, qubit<n_qubits>::gate_type::PHASE_GENERAL_SHIFT, _theta, q_target);
+        qubit::apply_theta_gate(this->M_qubits, gate_type::PHASE_GENERAL_SHIFT, _theta, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_rotation_x(const double &_theta, const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_theta_gate(this->M_qubits, qubit<n_qubits>::gate_type::ROTATION_X, _theta, q_target);
+        qubit::apply_theta_gate(this->M_qubits, gate_type::ROTATION_X, _theta, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_rotation_y(const double &_theta, const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_theta_gate(this->M_qubits, qubit<n_qubits>::gate_type::ROTATION_Y, _theta, q_target);
+        qubit::apply_theta_gate(this->M_qubits, gate_type::ROTATION_Y, _theta, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_rotation_z(const double &_theta, const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_theta_gate(this->M_qubits, qubit<n_qubits>::gate_type::ROTATION_Z, _theta, q_target);
+        qubit::apply_theta_gate(this->M_qubits, gate_type::ROTATION_Z, _theta, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_cnot(const std::size_t &q_control, const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_2qubit_gate(this->M_qubits, qubit<n_qubits>::gate_type::CONTROLLED_NOT, q_control, q_target);
+        qubit::apply_2qubit_gate(this->M_qubits, gate_type::CONTROLLED_NOT, q_control, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_cz(const std::size_t &q_control, const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_2qubit_gate(this->M_qubits, qubit<n_qubits>::gate_type::CONTROLLED_Z, q_control, q_target);
+        qubit::apply_2qubit_gate(this->M_qubits, gate_type::CONTROLLED_Z, q_control, q_target);
         return *this;
     }
 
     template <std::size_t n_qubits>
     qubit<n_qubits> &qubit<n_qubits>::apply_swap(const std::size_t &q_control, const std::size_t &q_target)
     {
-        qubit<n_qubits>::apply_2qubit_gate(this->M_qubits, qubit<n_qubits>::gate_type::SWAP_GATE, q_control, q_target);
+        qubit::apply_2qubit_gate(this->M_qubits, gate_type::SWAP_GATE, q_control, q_target);
         return *this;
     }
 
@@ -353,7 +353,13 @@ namespace simulator
     template <std::size_t n_qubits>
     const constexpr std::size_t qubit<n_qubits>::memory_consumption() const
     {
-        return sizeof(qubit<n_qubits>::complex) * (1 << n_qubits);
+        return sizeof(complex) * (1 << n_qubits);
+    }
+
+    template <std::size_t n_qubits>
+    const constexpr std::size_t qubit<n_qubits>::no_of_qubits() const
+    {
+        return n_qubits;
     }
 
     template <std::size_t n_qubits>
@@ -367,7 +373,7 @@ namespace simulator
 
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<double> dist(0.0, tot_prob);
+        std::uniform_real_distribution dist(0.0, tot_prob);
         double r = dist(gen);
 
         double accum = 0.0;
