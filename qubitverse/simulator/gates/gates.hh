@@ -86,6 +86,7 @@ namespace simulator
         const constexpr std::size_t get_size() const;
         const constexpr std::size_t memory_consumption() const;
         const constexpr std::size_t no_of_qubits() const;
+        void get_nth_qubit(complex (&__s)[2], const std::size_t &nth) const;
         std::size_t measure();
         ~qubit() = default;
     };
@@ -360,6 +361,26 @@ namespace simulator
     const constexpr std::size_t qubit<n_qubits>::no_of_qubits() const
     {
         return n_qubits;
+    }
+
+    template <std::size_t n_qubits>
+    void qubit<n_qubits>::get_nth_qubit(complex (&__s)[2], const std::size_t &nth) const
+    {
+        std::size_t mask = 1 << (n_qubits - nth - 1);
+        for (std::size_t i = 0; i < (1 << n_qubits); i++)
+        {
+            if (i & mask)
+                __s[1] += this->M_qubits[i];
+            else
+                __s[0] += this->M_qubits[i];
+        }
+        double norm = std::sqrt((std::abs(__s[0]) * std::abs(__s[0])) + (std::abs(__s[1]) * std::abs(__s[1])));
+
+        if (norm > 0)
+        {
+            __s[0] /= norm;
+            __s[1] /= norm;
+        }
     }
 
     template <std::size_t n_qubits>
