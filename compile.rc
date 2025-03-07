@@ -1,0 +1,71 @@
+if os != 'windows'
+    depends('g++')
+    depends('rm')
+    depends('mkdir')
+    depends('strip')
+else
+    depends('cl.exe')
+    depends('./bin')
+endif
+
+# DEPS
+
+depends('./qubitverse/simulator/gates/gates.hh')
+depends('./qubitverse/simulator/simulator/simulator.cc')
+
+# Targets
+
+[compiler]:
+    if os == 'windows'
+        compiler = 'cl.exe'
+    else
+        compiler = 'g++'
+    endif
+
+[arguments]:
+    if os == 'windows'
+        release_args = ['/std:c++latest', '/O2', '/DNDEBUG', '/EHsc']
+    else
+        release_args = ['-std=c++23', '-O3', '-DNDEBUG', '-march=native', '-mtune=native', '-masm=intel', '-funroll-all-loops']
+        debug_args = ['-std=c++23', '-g', '-pg', '-ggdb3', '-Wall', '-Wextra', '-Wuninitialized', '-Wstrict-aliasing', '-Wshadow', '-pedantic', '-Wmissing-declarations', '-Wmissing-include-dirs', '-Wnoexcept', '-Wunused']
+    endif
+
+[sources]:
+    1 = './qubitverse/simulator/simulator/simulator.cc'
+
+[output]:
+    if os == 'windows'
+        release = ['/Fo./bin/', '/Fe./bin/simulator']
+    else
+        release = ['-o', './bin/simulator']
+        debug = ['-o', './bin/simulator_debug']
+    endif
+
+if os != 'windows'
+    [strip]:
+        cmd = ['strip', './bin/simulator']
+endif
+
+[release]:
+    compiler()
+    arguments()[0]
+    sources()
+    output()[0]
+
+if os != 'windows'
+    [debug]:
+        compiler()
+        arguments()[1]
+        sources()
+        output()[1]
+endif
+
+[all]:
+    if os != 'windows'
+        make_dir = ['mkdir', '-p', './bin']
+    endif
+    release()
+    if os != 'windows'
+        debug()
+        strip()
+    endif
