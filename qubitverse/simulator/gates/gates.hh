@@ -59,7 +59,6 @@ namespace simulator
         static void apply_theta_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const double &__theta, const std::size_t &qubit_target);
         static void apply_2qubit_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const std::size_t &q_control, const std::size_t &q_target);
 
-      private:
         // a vector-space (hilbert-space) defined over complex numbers C
         // 1 << n_qubit translates to 2^N, where N is the number of qubit the hilbert-space(quantum-system) supports
         // memory consumption on x86_64 architecture for N-qubit system is: f(N) = 16 * 2^abs(N) bytes, that is exponential growth
@@ -86,6 +85,7 @@ namespace simulator
         const constexpr std::size_t get_size() const;
         const constexpr std::size_t memory_consumption() const;
         const constexpr std::size_t no_of_qubits() const;
+        void get_nth_qubit(complex (&__s)[2], const std::size_t &nth) const;
         std::size_t measure();
         ~qubit() = default;
     };
@@ -126,17 +126,17 @@ namespace simulator
             break;
 
         case gate_type::ROTATION_X:
-            __g.matrix[0][0] = std::__complex_cos<double>(__theta / 2.0);
-            __g.matrix[0][1] = (complex){0.0, -1.0} * std::__complex_sin<double>(__theta / 2.0);
-            __g.matrix[1][0] = (complex){0.0, -1.0} * std::__complex_sin<double>(__theta / 2.0);
-            __g.matrix[1][1] = std::__complex_cos<double>(__theta / 2.0);
+            __g.matrix[0][0] = std::cos<double>(__theta / 2.0);
+            __g.matrix[0][1] = (complex){0.0, -1.0} * std::sin<double>(__theta / 2.0);
+            __g.matrix[1][0] = (complex){0.0, -1.0} * std::sin<double>(__theta / 2.0);
+            __g.matrix[1][1] = std::cos<double>(__theta / 2.0);
             break;
 
         case gate_type::ROTATION_Y:
-            __g.matrix[0][0] = std::__complex_cos<double>(__theta / 2.0);
-            __g.matrix[0][1] = -std::__complex_sin<double>(__theta / 2.0);
-            __g.matrix[1][0] = std::__complex_sin<double>(__theta / 2.0);
-            __g.matrix[1][1] = std::__complex_cos<double>(__theta / 2.0);
+            __g.matrix[0][0] = std::cos<double>(__theta / 2.0);
+            __g.matrix[0][1] = -std::sin<double>(__theta / 2.0);
+            __g.matrix[1][0] = std::sin<double>(__theta / 2.0);
+            __g.matrix[1][1] = std::cos<double>(__theta / 2.0);
             break;
 
         case gate_type::ROTATION_Z:
@@ -360,6 +360,26 @@ namespace simulator
     const constexpr std::size_t qubit<n_qubits>::no_of_qubits() const
     {
         return n_qubits;
+    }
+
+    template <std::size_t n_qubits>
+    void qubit<n_qubits>::get_nth_qubit(complex (&__s)[2], const std::size_t &nth) const
+    {
+        std::size_t mask = 1 << (n_qubits - nth - 1);
+        for (std::size_t i = 0; i < (1 << n_qubits); i++)
+        {
+            if (i & mask)
+                __s[1] += this->M_qubits[i];
+            else
+                __s[0] += this->M_qubits[i];
+        }
+        double norm = std::sqrt((std::abs(__s[0]) * std::abs(__s[0])) + (std::abs(__s[1]) * std::abs(__s[1])));
+
+        if (norm > 0)
+        {
+            __s[0] /= norm;
+            __s[1] /= norm;
+        }
     }
 
     template <std::size_t n_qubits>
