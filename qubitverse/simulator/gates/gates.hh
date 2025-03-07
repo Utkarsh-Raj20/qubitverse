@@ -14,6 +14,7 @@
 namespace simulator
 {
     template <std::size_t n_qubits = 1>
+        requires(n_qubits > 0)
     class qubit
     {
       public:
@@ -91,6 +92,7 @@ namespace simulator
     };
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     void qubit<n_qubits>::apply_predefined_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const std::size_t &qubit_target)
     {
         const std::size_t stride = 1 << qubit_target; // Distance between paired indices
@@ -113,6 +115,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits>::qgate_2x2 &qubit<n_qubits>::get_theta_gate(qgate_2x2 &__g, const gate_type &__g_type, const double &__theta)
     {
         __g.type = __g_type;
@@ -154,6 +157,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     void qubit<n_qubits>::apply_theta_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const double &__theta, const std::size_t &qubit_target)
     {
         const std::size_t stride = 1 << qubit_target; // Distance between paired indices
@@ -178,6 +182,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     void qubit<n_qubits>::apply_2qubit_gate(complex (&__s)[1 << n_qubits], const gate_type &__g_type, const std::size_t &q_control, const std::size_t &q_target)
     {
         if (n_qubits < 2)
@@ -235,12 +240,14 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits>::qubit()
     {
         this->M_qubits[0] = {1, 0};
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_identity(const std::size_t &q_target)
     {
         qubit::apply_predefined_gate(this->M_qubits, gate_type::IDENTITY, q_target);
@@ -248,6 +255,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_pauli_x(const std::size_t &q_target)
     {
         qubit::apply_predefined_gate(this->M_qubits, gate_type::PAULI_X, q_target);
@@ -255,6 +263,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_pauli_y(const std::size_t &q_target)
     {
         qubit::apply_predefined_gate(this->M_qubits, gate_type::PAULI_Y, q_target);
@@ -262,6 +271,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_pauli_z(const std::size_t &q_target)
     {
         qubit::apply_predefined_gate(this->M_qubits, gate_type::PAULI_Z, q_target);
@@ -269,6 +279,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_hadamard(const std::size_t &q_target)
     {
         qubit::apply_predefined_gate(this->M_qubits, gate_type::HADAMARD, q_target);
@@ -276,6 +287,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_phase_pi_2_shift(const std::size_t &q_target)
     {
         qubit::apply_predefined_gate(this->M_qubits, gate_type::PHASE_PI_2_SHIFT, q_target);
@@ -283,6 +295,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_phase_pi_4_shift(const std::size_t &q_target)
     {
         qubit::apply_predefined_gate(this->M_qubits, gate_type::PHASE_PI_4_SHIFT, q_target);
@@ -290,6 +303,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_phase_general_shift(const double &_theta, const std::size_t &q_target)
     {
         qubit::apply_theta_gate(this->M_qubits, gate_type::PHASE_GENERAL_SHIFT, _theta, q_target);
@@ -297,6 +311,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_rotation_x(const double &_theta, const std::size_t &q_target)
     {
         qubit::apply_theta_gate(this->M_qubits, gate_type::ROTATION_X, _theta, q_target);
@@ -304,6 +319,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_rotation_y(const double &_theta, const std::size_t &q_target)
     {
         qubit::apply_theta_gate(this->M_qubits, gate_type::ROTATION_Y, _theta, q_target);
@@ -311,6 +327,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_rotation_z(const double &_theta, const std::size_t &q_target)
     {
         qubit::apply_theta_gate(this->M_qubits, gate_type::ROTATION_Z, _theta, q_target);
@@ -318,6 +335,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_cnot(const std::size_t &q_control, const std::size_t &q_target)
     {
         qubit::apply_2qubit_gate(this->M_qubits, gate_type::CONTROLLED_NOT, q_control, q_target);
@@ -325,6 +343,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_cz(const std::size_t &q_control, const std::size_t &q_target)
     {
         qubit::apply_2qubit_gate(this->M_qubits, gate_type::CONTROLLED_Z, q_control, q_target);
@@ -332,6 +351,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     qubit<n_qubits> &qubit<n_qubits>::apply_swap(const std::size_t &q_control, const std::size_t &q_target)
     {
         qubit::apply_2qubit_gate(this->M_qubits, gate_type::SWAP_GATE, q_control, q_target);
@@ -339,30 +359,35 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     const qubit<n_qubits>::complex (&qubit<n_qubits>::get_qubits() const)[1 << n_qubits]
     {
         return this->M_qubits;
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     const constexpr std::size_t qubit<n_qubits>::get_size() const
     {
         return 1 << n_qubits;
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     const constexpr std::size_t qubit<n_qubits>::memory_consumption() const
     {
         return sizeof(complex) * (1 << n_qubits);
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     const constexpr std::size_t qubit<n_qubits>::no_of_qubits() const
     {
         return n_qubits;
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     void qubit<n_qubits>::get_nth_qubit(complex (&__s)[2], const std::size_t &nth) const
     {
         std::size_t mask = 1 << (n_qubits - nth - 1);
@@ -383,6 +408,7 @@ namespace simulator
     }
 
     template <std::size_t n_qubits>
+        requires(n_qubits > 0)
     std::size_t qubit<n_qubits>::measure()
     {
         double tot_prob = 0.0;
