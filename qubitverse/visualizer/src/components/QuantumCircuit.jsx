@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Stage, Layer, Line, Rect, Text, Group, Circle } from "react-konva";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
+import CircuitDataExtractor from "./circuitDataExtractor";
 
 //
 // CONFIG CONSTANTS
 //
 const qubitSpacing = 50; // vertical spacing between qubit lines
-const numQubits = 5;     // Q0 through Q4
-const gateSize = 40;     // width/height for single-qubit gate squares
-const canvasMinX = 50;   // left bound for gates on the stage
+const numQubits = 5; // Q0 through Q4
+const gateSize = 40; // width/height for single-qubit gate squares
+const canvasMinX = 50; // left bound for gates on the stage
 const canvasMaxX = 750 - gateSize; // right bound so gate stays visible
 
 //
@@ -20,22 +21,24 @@ const gatesList = ["X", "Y", "H", "CNOT"];
 // Tooltip content for each gate
 //
 const gateTooltips = {
-  "X": {
+  X: {
     desc: "Pauli-X (NOT) Gate",
-    latex: "$$X = \\begin{pmatrix}0 & 1\\\\ 1 & 0\\end{pmatrix}$$"
+    latex: "$$X = \\begin{pmatrix}0 & 1\\\\ 1 & 0\\end{pmatrix}$$",
   },
-  "Y": {
+  Y: {
     desc: "Pauli-Y Gate",
-    latex: "$$Y = \\begin{pmatrix}0 & -i\\\\ i & 0\\end{pmatrix}$$"
+    latex: "$$Y = \\begin{pmatrix}0 & -i\\\\ i & 0\\end{pmatrix}$$",
   },
-  "H": {
+  H: {
     desc: "Hadamard (Superposition) Gate",
-    latex: "$$H = \\frac{1}{\\sqrt{2}} \\begin{pmatrix}1 & 1\\\\ 1 & -1\\end{pmatrix}$$"
+    latex:
+      "$$H = \\frac{1}{\\sqrt{2}} \\begin{pmatrix}1 & 1\\\\ 1 & -1\\end{pmatrix}$$",
   },
-  "CNOT": {
+  CNOT: {
     desc: "Controlled-NOT Gate",
-    latex: "$$CNOT = \\begin{pmatrix}1 & 0 & 0 & 0\\\\ 0 & 1 & 0 & 0\\\\ 0 & 0 & 0 & 1\\\\ 0 & 0 & 1 & 0\\end{pmatrix}$$"
-  }
+    latex:
+      "$$CNOT = \\begin{pmatrix}1 & 0 & 0 & 0\\\\ 0 & 1 & 0 & 0\\\\ 0 & 0 & 0 & 1\\\\ 0 & 0 & 1 & 0\\end{pmatrix}$$",
+  },
 };
 
 //
@@ -54,7 +57,7 @@ const QuantumGate = ({
   onDragEnd,
   fixedY,
   onRightClick,
-  order
+  order,
 }) => (
   <Group
     draggable={draggable}
@@ -64,7 +67,7 @@ const QuantumGate = ({
       fixedY !== undefined
         ? (pos) => ({
             x: clamp(pos.x, canvasMinX, canvasMaxX),
-            y: fixedY
+            y: fixedY,
           })
         : undefined
     }
@@ -103,14 +106,7 @@ const QuantumGate = ({
 //
 // MULTI-QUBIT GATE: CNOT
 //
-const CNOTGate = ({
-  x,
-  control,
-  target,
-  onDragEnd,
-  onRightClick,
-  order
-}) => {
+const CNOTGate = ({ x, control, target, onDragEnd, onRightClick, order }) => {
   const yControl = (control + 1) * qubitSpacing;
   const yTarget = (target + 1) * qubitSpacing;
   return (
@@ -120,7 +116,7 @@ const CNOTGate = ({
       y={0}
       dragBoundFunc={(pos) => ({
         x: clamp(pos.x, canvasMinX, canvasMaxX),
-        y: 0
+        y: 0,
       })}
       onDragEnd={onDragEnd}
       onContextMenu={(e) => {
@@ -128,21 +124,15 @@ const CNOTGate = ({
         onRightClick();
       }}
     >
-      <Line
-        points={[0, yControl, 0, yTarget]}
-        stroke="black"
-        strokeWidth={2}
-      />
+      <Line points={[0, yControl, 0, yTarget]} stroke="black" strokeWidth={2} />
       <Circle x={0} y={yControl} radius={6} fill="black" />
-      <Circle
-        x={0}
-        y={yTarget}
-        radius={10}
+      <Circle x={0} y={yTarget} radius={10} stroke="black" strokeWidth={2} />
+      <Line points={[-6, yTarget, 6, yTarget]} stroke="black" strokeWidth={2} />
+      <Line
+        points={[0, yTarget - 6, 0, yTarget + 6]}
         stroke="black"
         strokeWidth={2}
       />
-      <Line points={[-6, yTarget, 6, yTarget]} stroke="black" strokeWidth={2} />
-      <Line points={[0, yTarget - 6, 0, yTarget + 6]} stroke="black" strokeWidth={2} />
       {order !== undefined && (
         <Text
           text={String(order)}
@@ -191,7 +181,7 @@ const snapY = (pointerY) => {
 //
 const QuantumCircuit = () => {
   // Separate arrays for single-qubit and CNOT gates.
-  const [gates, setGates] = useState([]);       // { x, y, text }
+  const [gates, setGates] = useState([]); // { x, y, text }
   const [cnotGates, setCnotGates] = useState([]); // { x, control, target }
   const [selectedQubit, setSelectedQubit] = useState(null); // for Bloch sphere popup
   const [modalOpen, setModalOpen] = useState(false);
@@ -208,7 +198,7 @@ const QuantumCircuit = () => {
     x: 0,
     y: 0,
     desc: "",
-    latex: ""
+    latex: "",
   });
 
   const stageRef = useRef(null);
@@ -262,7 +252,7 @@ const QuantumCircuit = () => {
         const snappedY = snapY(pointerY);
         setGates((prev) => [
           ...prev,
-          { x: pointerX, y: snappedY, text: gateType }
+          { x: pointerX, y: snappedY, text: gateType },
         ]);
       }
     };
@@ -280,7 +270,10 @@ const QuantumCircuit = () => {
     const { x } = e.target.position();
     setGates((prev) => {
       const newGates = [...prev];
-      newGates[index] = { ...newGates[index], x: clamp(x, canvasMinX, canvasMaxX) };
+      newGates[index] = {
+        ...newGates[index],
+        x: clamp(x, canvasMinX, canvasMaxX),
+      };
       return newGates;
     });
   };
@@ -323,7 +316,7 @@ const QuantumCircuit = () => {
     }
     setCnotGates((prev) => [
       ...prev,
-      { x: cnotX, control: cnotControl, target: cnotTarget }
+      { x: cnotX, control: cnotControl, target: cnotTarget },
     ]);
     setCnotModalOpen(false);
   };
@@ -339,7 +332,7 @@ const QuantumCircuit = () => {
       x: rect.left,
       y: rect.bottom + 5,
       desc: gateTooltips[gate].desc,
-      latex: gateTooltips[gate].latex
+      latex: gateTooltips[gate].latex,
     });
   };
   const handleTooltipLeave = () => {
@@ -348,7 +341,14 @@ const QuantumCircuit = () => {
 
   return (
     <MathJaxContext>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          position: "relative",
+        }}
+      >
         {/* TOP MENU */}
         <div
           style={{
@@ -357,7 +357,7 @@ const QuantumCircuit = () => {
             border: "2px solid black",
             borderRadius: "5px",
             background: "white",
-            marginBottom: "10px"
+            marginBottom: "10px",
           }}
         >
           {gatesList.map((gate, index) => (
@@ -373,7 +373,7 @@ const QuantumCircuit = () => {
                 margin: "5px",
                 borderRadius: "5px",
                 cursor: "grab",
-                background: "white"
+                background: "white",
               }}
               draggable
               onDragStart={(e) => e.dataTransfer.setData("text/plain", gate)}
@@ -397,7 +397,7 @@ const QuantumCircuit = () => {
               border: "1px solid #ccc",
               borderRadius: "4px",
               zIndex: 1000,
-              boxShadow: "0px 0px 5px rgba(0,0,0,0.3)"
+              boxShadow: "0px 0px 5px rgba(0,0,0,0.3)",
             }}
           >
             <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
@@ -465,7 +465,7 @@ const QuantumCircuit = () => {
               background: "rgba(0, 0, 0, 0.5)",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center"
+              justifyContent: "center",
             }}
           >
             <div
@@ -474,7 +474,7 @@ const QuantumCircuit = () => {
                 background: "white",
                 padding: "20px",
                 borderRadius: "10px",
-                textAlign: "center"
+                textAlign: "center",
               }}
             >
               <h3>Bloch Sphere for Q{selectedQubit}</h3>
@@ -504,7 +504,7 @@ const QuantumCircuit = () => {
               background: "rgba(0,0,0,0.5)",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center"
+              justifyContent: "center",
             }}
           >
             <div
@@ -514,7 +514,7 @@ const QuantumCircuit = () => {
                 padding: "20px",
                 borderRadius: "10px",
                 textAlign: "center",
-                minWidth: "300px"
+                minWidth: "300px",
               }}
             >
               <h2>Select Control and Target Qubit</h2>
@@ -544,7 +544,10 @@ const QuantumCircuit = () => {
                   ))}
                 </select>
               </div>
-              <button onClick={handleCnotConfirm} style={{ marginRight: "10px" }}>
+              <button
+                onClick={handleCnotConfirm}
+                style={{ marginRight: "10px" }}
+              >
                 Confirm
               </button>
               <button onClick={handleCnotCancel}>Cancel</button>
@@ -552,6 +555,7 @@ const QuantumCircuit = () => {
           </div>
         )}
       </div>
+      <CircuitDataExtractor gates={gates} cnotGates={cnotGates} />
     </MathJaxContext>
   );
 };
