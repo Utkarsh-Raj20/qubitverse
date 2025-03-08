@@ -15,12 +15,16 @@ const canvasMaxX = 750 - gateSize; // right bound so gate stays visible
 //
 // Gate types for the top menu
 //
-const gatesList = ["X", "Y", "H", "CNOT"];
+const gatesList = ["I", "X", "Y", "Z", "H", "S", "T", "CNOT"];
 
 //
 // Tooltip content for each gate
 //
 const gateTooltips = {
+  I: {
+    desc: "Identity Gate",
+    latex: "$$I = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$$",
+  },
   X: {
     desc: "Pauli-X (NOT) Gate",
     latex: "$$X = \\begin{pmatrix}0 & 1\\\\ 1 & 0\\end{pmatrix}$$",
@@ -28,6 +32,18 @@ const gateTooltips = {
   Y: {
     desc: "Pauli-Y Gate",
     latex: "$$Y = \\begin{pmatrix}0 & -i\\\\ i & 0\\end{pmatrix}$$",
+  },
+  Z: {
+    desc: "Pauli-Z Gate",
+    latex: "$$Z = \\begin{pmatrix} 1 & 0 \\\\ 0 & -1 \\end{pmatrix}$$",
+  },
+  S: {
+    desc: "Phase π/2 Shift",
+    latex: "$$S = \\begin{pmatrix} 1 & 0 \\\\ 0 & i \\end{pmatrix}$$",
+  },
+  T: {
+    desc: "Phase π/4 Shift",
+    latex: "$$T = \\begin{pmatrix} 1 & 0 \\\\ 0 & e^{iπ/4} \\end{pmatrix}$$",
   },
   H: {
     desc: "Hadamard (Superposition) Gate",
