@@ -15,7 +15,7 @@ const canvasMaxX = 750 - gateSize; // right bound so gate stays visible
 //
 // Gate types for the top menu
 //
-const gatesList = ["I", "X", "Y", "Z", "H", "S", "T", "CNOT"];
+const gatesList = ["I", "X", "Y", "Z", "H", "S", "T", "P", "CNOT"];
 
 //
 // Tooltip content for each gate
@@ -50,6 +50,10 @@ const gateTooltips = {
     latex:
       "$$H = \\frac{1}{\\sqrt{2}} \\begin{pmatrix}1 & 1\\\\ 1 & -1\\end{pmatrix}$$",
   },
+  P: {
+    desc: "General Phase Shift Gate",
+    latex: "$$P(\\theta) = \\begin{pmatrix} 1 & 0 \\\\ 0 & e^{i\\theta} \\end{pmatrix}$$",
+  },
   CNOT: {
     desc: "Controlled-NOT Gate",
     latex:
@@ -74,6 +78,7 @@ const QuantumGate = ({
   fixedY,
   onRightClick,
   order,
+  params = {},
 }) => (
   <Group
     draggable={draggable}
@@ -107,6 +112,14 @@ const QuantumGate = ({
       x={gateSize / 2 - 5}
       y={gateSize / 2 - 10}
     />
+    {text === "P" && params.theta && (
+      <Text
+        text={`${params.theta}°`}
+        fontSize={10}
+        x={gateSize / 2 - 10}
+        y={gateSize / 2 + 6}
+      />
+    )}
     {order !== undefined && (
       <Text
         text={String(order)}
@@ -197,10 +210,16 @@ const snapY = (pointerY) => {
 //
 const QuantumCircuit = () => {
   // Separate arrays for single-qubit and CNOT gates.
-  const [gates, setGates] = useState([]); // { x, y, text }
+  const [gates, setGates] = useState([]); // { x, y, text, params? }
   const [cnotGates, setCnotGates] = useState([]); // { x, control, target }
   const [selectedQubit, setSelectedQubit] = useState(null); // for Bloch sphere popup
   const [modalOpen, setModalOpen] = useState(false);
+
+  // Phase gate modal state
+  const [phaseModalOpen, setPhaseModalOpen] = useState(false);
+  const [phaseValue, setPhaseValue] = useState(0);
+  const [phaseX, setPhaseX] = useState(0);
+  const [phaseY, setPhaseY] = useState(0);
 
   // CNOT selection modal state
   const [cnotModalOpen, setCnotModalOpen] = useState(false);
@@ -251,6 +270,7 @@ const QuantumCircuit = () => {
   // Stage drop logic:
   // If a single-qubit gate is dropped, snap its y.
   // If "CNOT" is dropped, open the CNOT selection modal.
+  // If "P" is dropped, open the Phase gate modal
   //
   useEffect(() => {
     const container = stageRef.current.container();
@@ -261,9 +281,15 @@ const QuantumCircuit = () => {
       const pointerY = e.clientY - rect.top;
       const gateType = e.dataTransfer.getData("text/plain");
       if (!gateType) return;
+      
       if (gateType === "CNOT") {
         setCnotModalOpen(true);
         setCnotX(pointerX);
+      } else if (gateType === "P") {
+        const snappedY = snapY(pointerY);
+        setPhaseModalOpen(true);
+        setPhaseX(pointerX);
+        setPhaseY(snappedY);
       } else {
         const snappedY = snapY(pointerY);
         setGates((prev) => [
@@ -322,6 +348,24 @@ const QuantumCircuit = () => {
   const closeModal = () => {
     setSelectedQubit(null);
     setModalOpen(false);
+  };
+
+  // Phase gate modal logic
+  const handlePhaseConfirm = () => {
+    setGates((prev) => [
+      ...prev,
+      { 
+        x: phaseX, 
+        y: phaseY, 
+        text: "P", 
+        params: { theta: phaseValue } 
+      },
+    ]);
+    setPhaseModalOpen(false);
+  };
+  
+  const handlePhaseCancel = () => {
+    setPhaseModalOpen(false);
   };
 
   // CNOT selection modal logic
@@ -447,6 +491,7 @@ const QuantumCircuit = () => {
                 x={g.x}
                 y={g.y}
                 text={g.text}
+                params={g.params}
                 draggable
                 fixedY={g.y}
                 onDragEnd={(e) => handleGateDragEnd(e, i)}
@@ -503,6 +548,70 @@ const QuantumCircuit = () => {
               <button onClick={closeModal} style={{ marginTop: "10px" }}>
                 Close
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* PHASE GATE PARAMETER MODAL */}
+        {phaseModalOpen && (
+          <div
+            onClick={handlePhaseCancel}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              background: "rgba(0,0,0,0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1001,
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "white",
+                padding: "20px",
+                borderRadius: "10px",
+                textAlign: "center",
+                minWidth: "300px",
+              }}
+            >
+              <h2>Set Phase Angle (θ)</h2>
+              <div style={{ margin: "20px 0" }}>
+                <MathJax>
+                  {`$$P(\\theta) = \\begin{pmatrix} 1 & 0 \\\\ 0 & e^{i\\theta} \\end{pmatrix}$$`}
+                </MathJax>
+              </div>
+              <div style={{ margin: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <label style={{ marginRight: "10px" }}>θ (degrees): </label>
+                <input
+                  type="number"
+                  value={phaseValue}
+                  onChange={(e) => setPhaseValue(parseFloat(e.target.value) || 0)}
+                  style={{ width: "80px", padding: "4px" }}
+                />
+              </div>
+              <div style={{ margin: "10px" }}>
+                <input
+                  type="range"
+                  min="0"
+                  max="360"
+                  step="1"
+                  value={phaseValue}
+                  onChange={(e) => setPhaseValue(parseFloat(e.target.value))}
+                  style={{ width: "100%" }}
+                />
+              </div>
+              <button
+                onClick={handlePhaseConfirm}
+                style={{ marginRight: "10px" }}
+              >
+                Confirm
+              </button>
+              <button onClick={handlePhaseCancel}>Cancel</button>
             </div>
           </div>
         )}
