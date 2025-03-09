@@ -3,19 +3,34 @@ import { Stage, Layer, Line, Rect, Text, Group, Circle } from "react-konva";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import CircuitDataExtractor from "./circuitDataExtractor";
 
+import { Button } from "./ui/button";
+
 //
 // CONFIG CONSTANTS
 //
 const qubitSpacing = 50; // vertical spacing between qubit lines
 const numQubits = 5; // Q0 through Q4
-const gateSize = 40; // width/height for single-qubit gate squares
+const gateSize = 45; // width/height for single-qubit gate squares
 const canvasMinX = 50; // left bound for gates on the stage
 const canvasMaxX = 750 - gateSize; // right bound so gate stays visible
 
 //
 // Gate types for the top menu
 //
-const gatesList = ["I", "X", "Y", "Z", "H", "S", "T", "P", "Rx", "Ry", "Rz", "CNOT"];
+const gatesList = [
+  "I",
+  "X",
+  "Y",
+  "Z",
+  "H",
+  "S",
+  "T",
+  "P",
+  "Rx",
+  "Ry",
+  "Rz",
+  "CNOT",
+];
 
 //
 // Tooltip content for each gate
@@ -52,19 +67,23 @@ const gateTooltips = {
   },
   P: {
     desc: "General Phase Shift Gate",
-    latex: "$$P(\\theta) = \\begin{pmatrix} 1 & 0 \\\\ 0 & e^{i\\theta} \\end{pmatrix}$$",
+    latex:
+      "$$P(\\theta) = \\begin{pmatrix} 1 & 0 \\\\ 0 & e^{i\\theta} \\end{pmatrix}$$",
   },
   Rx: {
     desc: "Rotation around X-axis",
-    latex: "$$R_x(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -i\\sin(\\theta/2) \\\\ -i\\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$",
+    latex:
+      "$$R_x(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -i\\sin(\\theta/2) \\\\ -i\\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$",
   },
   Ry: {
     desc: "Rotation around Y-axis",
-    latex: "$$R_y(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -\\sin(\\theta/2) \\\\ \\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$",
+    latex:
+      "$$R_y(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -\\sin(\\theta/2) \\\\ \\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$",
   },
   Rz: {
     desc: "Rotation around Z-axis",
-    latex: "$$R_z(\\theta) = \\begin{pmatrix} e^{-i\\theta/2} & 0 \\\\ 0 & e^{i\\theta/2} \\end{pmatrix}$$",
+    latex:
+      "$$R_z(\\theta) = \\begin{pmatrix} e^{-i\\theta/2} & 0 \\\\ 0 & e^{i\\theta/2} \\end{pmatrix}$$",
   },
   CNOT: {
     desc: "Controlled-NOT Gate",
@@ -91,60 +110,69 @@ const QuantumGate = ({
   onRightClick,
   order,
   params = {},
-}) => (
-  <Group
-    draggable={draggable}
-    x={x}
-    y={y}
-    dragBoundFunc={
-      fixedY !== undefined
-        ? (pos) => ({
-            x: clamp(pos.x, canvasMinX, canvasMaxX),
-            y: fixedY,
-          })
-        : undefined
-    }
-    onDragEnd={onDragEnd}
-    onContextMenu={(e) => {
-      e.evt.preventDefault();
-      onRightClick();
-    }}
-  >
-    <Rect
-      width={gateSize}
-      height={gateSize}
-      fill="white"
-      stroke="black"
-      strokeWidth={2}
-      cornerRadius={5}
-    />
-    <Text
-      text={text}
-      fontSize={16}
-      x={text.length > 1 ? gateSize / 2 - 10 : gateSize / 2 - 5}
-      y={gateSize / 2 - 10}
-    />
-    {(text === "P" || text === "Rx" || text === "Ry" || text === "Rz") && params.theta !== undefined && (
-      <Text
-        text={`${params.theta}°`}
-        fontSize={10}
-        x={text === "P" ? gateSize / 2 - 10 : gateSize / 2 - 13}
-        y={gateSize / 2 + 6}
-        width={gateSize - 4}
-        align="center"
+}) => {
+  // Check if phase gate that has a theta parameter
+  const isRotationGate = params.theta !== undefined;
+  let thetalength = 0;
+  if (params.theta != undefined) {
+    thetalength = params.theta.toString().length;
+  }
+  return (
+    <Group
+      draggable={draggable}
+      x={x}
+      y={y}
+      dragBoundFunc={
+        fixedY !== undefined
+          ? (pos) => ({
+              x: clamp(pos.x, canvasMinX, canvasMaxX),
+              y: fixedY,
+            })
+          : undefined
+      }
+      onDragEnd={onDragEnd}
+      onContextMenu={(e) => {
+        e.evt.preventDefault();
+        onRightClick();
+      }}
+    >
+      <Rect
+        width={gateSize}
+        height={gateSize}
+        fill="white"
+        stroke="black"
+        strokeWidth={2}
+        cornerRadius={5}
       />
-    )}
-    {order !== undefined && (
       <Text
-        text={String(order)}
-        fontSize={12}
-        fill="red"
-        x={gateSize - 15}
-        y={gateSize - 15}
+        text={text}
+        fontSize={16}
+        fontFamily="Fira Code, monospace"
+        x={text.length > 1 ? gateSize / 2 - 10 : gateSize / 2 - 5}
+        y={gateSize / 2 - 10}
       />
-    )}
-  </Group>
-);
+      {isRotationGate && (
+        <Text
+          text={`${params.theta}°`}
+          fontSize={10}
+          x={thetalength === 1 ? gateSize / 2 - 19 : gateSize / 2 - 20}
+          y={gateSize / 2 + 8}
+          width={gateSize - 4}
+          align="center"
+        />
+      )}
+      {order !== undefined && (
+        <Text
+          text={String(order)}
+          fontSize={12}
+          fill="red"
+          x={gateSize - 10}
+          y={3}
+        />
+      )}
+    </Group>
+  );
+};
 
 //
 // MULTI-QUBIT GATE: CNOT
@@ -264,11 +292,13 @@ const QuantumCircuit = () => {
     if (!combinedGroups[qid]) combinedGroups[qid] = [];
     combinedGroups[qid].push({ type: "single", index: i, x: g.x });
   });
+
   cnotGates.forEach((g, i) => {
     const qid = g.control; // control qubit index
     if (!combinedGroups[qid]) combinedGroups[qid] = [];
     combinedGroups[qid].push({ type: "cnot", index: i, x: g.x });
   });
+
   const combinedOrders = { single: {}, cnot: {} };
   Object.keys(combinedGroups).forEach((qid) => {
     combinedGroups[qid].sort((a, b) => a.x - b.x);
@@ -296,11 +326,16 @@ const QuantumCircuit = () => {
       const pointerY = e.clientY - rect.top;
       const gateType = e.dataTransfer.getData("text/plain");
       if (!gateType) return;
-      
+
       if (gateType === "CNOT") {
         setCnotModalOpen(true);
         setCnotX(pointerX);
-      } else if (gateType === "P" || gateType === "Rx" || gateType === "Ry" || gateType === "Rz") {
+      } else if (
+        gateType === "P" ||
+        gateType === "Rx" ||
+        gateType === "Ry" ||
+        gateType === "Rz"
+      ) {
         const snappedY = snapY(pointerY);
         setRotationModalOpen(true);
         setRotationX(pointerX);
@@ -380,19 +415,19 @@ const QuantumCircuit = () => {
   const handleRotationConfirm = () => {
     // Validate the angle before creating the gate
     const validTheta = validateRotationValue(rotationValue);
-    
+
     setGates((prev) => [
       ...prev,
-      { 
-        x: rotationX, 
-        y: rotationY, 
-        text: rotationType, 
-        params: { theta: validTheta } 
+      {
+        x: rotationX,
+        y: rotationY,
+        text: rotationType,
+        params: { theta: validTheta },
       },
     ]);
     setRotationModalOpen(false);
   };
-  
+
   const handleRotationCancel = () => {
     setRotationModalOpen(false);
   };
@@ -424,8 +459,8 @@ const QuantumCircuit = () => {
     const rect = e.target.getBoundingClientRect();
     setTooltip({
       visible: true,
-      x: rect.left,
-      y: rect.bottom + 5,
+      x: rect.left + 50,
+      y: rect.bottom - 150,
       desc: gateTooltips[gate].desc,
       latex: gateTooltips[gate].latex,
     });
@@ -440,22 +475,26 @@ const QuantumCircuit = () => {
       case "Rx":
         return {
           title: "Rotation around X-axis (θ)",
-          latex: "$$R_x(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -i\\sin(\\theta/2) \\\\ -i\\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$"
+          latex:
+            "$$R_x(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -i\\sin(\\theta/2) \\\\ -i\\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$",
         };
       case "Ry":
         return {
           title: "Rotation around Y-axis (θ)",
-          latex: "$$R_y(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -\\sin(\\theta/2) \\\\ \\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$"
+          latex:
+            "$$R_y(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -\\sin(\\theta/2) \\\\ \\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$",
         };
       case "Rz":
         return {
           title: "Rotation around Z-axis (θ)",
-          latex: "$$R_z(\\theta) = \\begin{pmatrix} e^{-i\\theta/2} & 0 \\\\ 0 & e^{i\\theta/2} \\end{pmatrix}$$"
+          latex:
+            "$$R_z(\\theta) = \\begin{pmatrix} e^{-i\\theta/2} & 0 \\\\ 0 & e^{i\\theta/2} \\end{pmatrix}$$",
         };
       default: // P gate
         return {
           title: "Phase Angle (θ)",
-          latex: "$$P(\\theta) = \\begin{pmatrix} 1 & 0 \\\\ 0 & e^{i\\theta} \\end{pmatrix}$$"
+          latex:
+            "$$P(\\theta) = \\begin{pmatrix} 1 & 0 \\\\ 0 & e^{i\\theta} \\end{pmatrix}$$",
         };
     }
   };
@@ -473,12 +512,13 @@ const QuantumCircuit = () => {
         {/* TOP MENU */}
         <div
           style={{
-            display: "flex",
+            display: "grid",
+            gridTemplateColumns: "repeat(6, 1fr)",
             padding: "10px",
-            border: "2px solid black",
+            border: "3px solid black",
             borderRadius: "5px",
             background: "white",
-            marginBottom: "10px",
+            marginBottom: "20px",
           }}
         >
           {gatesList.map((gate, index) => (
@@ -490,11 +530,12 @@ const QuantumCircuit = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                border: "1px solid black",
+                border: "3px solid black",
                 margin: "5px",
                 borderRadius: "5px",
                 cursor: "grab",
                 background: "white",
+                fontFamily: "Fira Code , monospace",
               }}
               draggable
               onDragStart={(e) => e.dataTransfer.setData("text/plain", gate)}
@@ -535,7 +576,11 @@ const QuantumCircuit = () => {
           ref={stageRef}
           width={800}
           height={300}
-          style={{ border: "2px solid black", background: "white" }}
+          style={{
+            border: "3px solid black",
+            background: "white",
+            borderRadius: "5px",
+          }}
         >
           <Layer>
             {Array.from({ length: numQubits }).map((_, i) => (
@@ -640,15 +685,21 @@ const QuantumCircuit = () => {
                 minWidth: "300px",
               }}
             >
-              <h2>{getRotationModalContent().title}</h2>
+              <h2 className="font-bold">{getRotationModalContent().title}</h2>
               <div style={{ margin: "20px 0" }}>
-                <MathJax>
-                  {getRotationModalContent().latex}
-                </MathJax>
+                <MathJax>{getRotationModalContent().latex}</MathJax>
               </div>
-              <div style={{ margin: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div
+                style={{
+                  margin: "10px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
                 <label style={{ marginRight: "10px" }}>θ (degrees): </label>
                 <input
+                  className="block border-2 border-gray-300 rounded-md"
                   type="number"
                   min="1"
                   max="360"
@@ -667,17 +718,22 @@ const QuantumCircuit = () => {
                   onChange={handleRotationInputChange}
                   style={{ width: "100%" }}
                 />
-                <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
+                <div
+                  style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}
+                >
                   Note: Angle must be between 1° and 360°
                 </div>
               </div>
-              <button
+              <Button
+                variant="outline"
                 onClick={handleRotationConfirm}
                 style={{ marginRight: "10px" }}
               >
                 Confirm
-              </button>
-              <button onClick={handleRotationCancel}>Cancel</button>
+              </Button>
+              <Button variant="outline" onClick={handleRotationCancel}>
+                Cancel
+              </Button>
             </div>
           </div>
         )}
@@ -712,6 +768,7 @@ const QuantumCircuit = () => {
               <div style={{ margin: "10px" }}>
                 <label>Control Qubit: </label>
                 <select
+                  className="border-2 border-gray-300 rounded-md"
                   value={cnotControl}
                   onChange={(e) => setCnotControl(Number(e.target.value))}
                 >
@@ -725,6 +782,7 @@ const QuantumCircuit = () => {
               <div style={{ margin: "10px" }}>
                 <label>Target Qubit: </label>
                 <select
+                  className="border-2 border-gray-300 rounded-md"
                   value={cnotTarget}
                   onChange={(e) => setCnotTarget(Number(e.target.value))}
                 >
@@ -735,13 +793,16 @@ const QuantumCircuit = () => {
                   ))}
                 </select>
               </div>
-              <button
+              <Button
+                variant="outline"
                 onClick={handleCnotConfirm}
                 style={{ marginRight: "10px" }}
               >
                 Confirm
-              </button>
-              <button onClick={handleCnotCancel}>Cancel</button>
+              </Button>
+              <Button variant="outline" onClick={handleCnotCancel}>
+                Cancel
+              </Button>
             </div>
           </div>
         )}
