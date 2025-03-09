@@ -15,7 +15,7 @@ const canvasMaxX = 750 - gateSize; // right bound so gate stays visible
 //
 // Gate types for the top menu
 //
-const gatesList = ["I", "X", "Y", "Z", "H", "S", "T", "P", "CNOT"];
+const gatesList = ["I", "X", "Y", "Z", "H", "S", "T", "P", "Rx", "Ry", "Rz", "CNOT"];
 
 //
 // Tooltip content for each gate
@@ -53,6 +53,18 @@ const gateTooltips = {
   P: {
     desc: "General Phase Shift Gate",
     latex: "$$P(\\theta) = \\begin{pmatrix} 1 & 0 \\\\ 0 & e^{i\\theta} \\end{pmatrix}$$",
+  },
+  Rx: {
+    desc: "Rotation around X-axis",
+    latex: "$$R_x(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -i\\sin(\\theta/2) \\\\ -i\\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$",
+  },
+  Ry: {
+    desc: "Rotation around Y-axis",
+    latex: "$$R_y(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -\\sin(\\theta/2) \\\\ \\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$",
+  },
+  Rz: {
+    desc: "Rotation around Z-axis",
+    latex: "$$R_z(\\theta) = \\begin{pmatrix} e^{-i\\theta/2} & 0 \\\\ 0 & e^{i\\theta/2} \\end{pmatrix}$$",
   },
   CNOT: {
     desc: "Controlled-NOT Gate",
@@ -108,16 +120,18 @@ const QuantumGate = ({
     />
     <Text
       text={text}
-      fontSize={20}
-      x={gateSize / 2 - 5}
+      fontSize={16}
+      x={text.length > 1 ? gateSize / 2 - 10 : gateSize / 2 - 5}
       y={gateSize / 2 - 10}
     />
-    {text === "P" && params.theta && (
+    {(text === "P" || text === "Rx" || text === "Ry" || text === "Rz") && params.theta !== undefined && (
       <Text
         text={`${params.theta}°`}
         fontSize={10}
-        x={gateSize / 2 - 10}
+        x={text === "P" ? gateSize / 2 - 10 : gateSize / 2 - 13}
         y={gateSize / 2 + 6}
+        width={gateSize - 4}
+        align="center"
       />
     )}
     {order !== undefined && (
@@ -215,11 +229,12 @@ const QuantumCircuit = () => {
   const [selectedQubit, setSelectedQubit] = useState(null); // for Bloch sphere popup
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Phase gate modal state
-  const [phaseModalOpen, setPhaseModalOpen] = useState(false);
-  const [phaseValue, setPhaseValue] = useState(0);
-  const [phaseX, setPhaseX] = useState(0);
-  const [phaseY, setPhaseY] = useState(0);
+  // Rotation/Phase gate modal state
+  const [rotationModalOpen, setRotationModalOpen] = useState(false);
+  const [rotationValue, setRotationValue] = useState(45); // Default to 45 degrees
+  const [rotationX, setRotationX] = useState(0);
+  const [rotationY, setRotationY] = useState(0);
+  const [rotationType, setRotationType] = useState("P");
 
   // CNOT selection modal state
   const [cnotModalOpen, setCnotModalOpen] = useState(false);
@@ -270,7 +285,7 @@ const QuantumCircuit = () => {
   // Stage drop logic:
   // If a single-qubit gate is dropped, snap its y.
   // If "CNOT" is dropped, open the CNOT selection modal.
-  // If "P" is dropped, open the Phase gate modal
+  // If "P", "Rx", "Ry", or "Rz" is dropped, open the rotation angle modal
   //
   useEffect(() => {
     const container = stageRef.current.container();
@@ -285,11 +300,13 @@ const QuantumCircuit = () => {
       if (gateType === "CNOT") {
         setCnotModalOpen(true);
         setCnotX(pointerX);
-      } else if (gateType === "P") {
+      } else if (gateType === "P" || gateType === "Rx" || gateType === "Ry" || gateType === "Rz") {
         const snappedY = snapY(pointerY);
-        setPhaseModalOpen(true);
-        setPhaseX(pointerX);
-        setPhaseY(snappedY);
+        setRotationModalOpen(true);
+        setRotationX(pointerX);
+        setRotationY(snappedY);
+        setRotationType(gateType);
+        setRotationValue(45); // Reset to default value (45 degrees)
       } else {
         const snappedY = snapY(pointerY);
         setGates((prev) => [
@@ -350,22 +367,40 @@ const QuantumCircuit = () => {
     setModalOpen(false);
   };
 
-  // Phase gate modal logic
-  const handlePhaseConfirm = () => {
+  // Validate rotation value to prevent 0 angle
+  const validateRotationValue = (value) => {
+    // Ensure the value is not 0
+    if (value === 0) {
+      return 1; // Set to minimum acceptable value
+    }
+    return value;
+  };
+
+  // Rotation gate modal logic
+  const handleRotationConfirm = () => {
+    // Validate the angle before creating the gate
+    const validTheta = validateRotationValue(rotationValue);
+    
     setGates((prev) => [
       ...prev,
       { 
-        x: phaseX, 
-        y: phaseY, 
-        text: "P", 
-        params: { theta: phaseValue } 
+        x: rotationX, 
+        y: rotationY, 
+        text: rotationType, 
+        params: { theta: validTheta } 
       },
     ]);
-    setPhaseModalOpen(false);
+    setRotationModalOpen(false);
   };
   
-  const handlePhaseCancel = () => {
-    setPhaseModalOpen(false);
+  const handleRotationCancel = () => {
+    setRotationModalOpen(false);
+  };
+
+  // Handler for rotation input change
+  const handleRotationInputChange = (e) => {
+    const value = parseFloat(e.target.value) || 1; // If parsing fails, default to 1
+    setRotationValue(value === 0 ? 1 : value); // Prevent 0
   };
 
   // CNOT selection modal logic
@@ -397,6 +432,32 @@ const QuantumCircuit = () => {
   };
   const handleTooltipLeave = () => {
     setTooltip({ visible: false, x: 0, y: 0, desc: "", latex: "" });
+  };
+
+  // Helper function to get the appropriate title and LaTeX formula based on gate type
+  const getRotationModalContent = () => {
+    switch (rotationType) {
+      case "Rx":
+        return {
+          title: "Rotation around X-axis (θ)",
+          latex: "$$R_x(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -i\\sin(\\theta/2) \\\\ -i\\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$"
+        };
+      case "Ry":
+        return {
+          title: "Rotation around Y-axis (θ)",
+          latex: "$$R_y(\\theta) = \\begin{pmatrix} \\cos(\\theta/2) & -\\sin(\\theta/2) \\\\ \\sin(\\theta/2) & \\cos(\\theta/2) \\end{pmatrix}$$"
+        };
+      case "Rz":
+        return {
+          title: "Rotation around Z-axis (θ)",
+          latex: "$$R_z(\\theta) = \\begin{pmatrix} e^{-i\\theta/2} & 0 \\\\ 0 & e^{i\\theta/2} \\end{pmatrix}$$"
+        };
+      default: // P gate
+        return {
+          title: "Phase Angle (θ)",
+          latex: "$$P(\\theta) = \\begin{pmatrix} 1 & 0 \\\\ 0 & e^{i\\theta} \\end{pmatrix}$$"
+        };
+    }
   };
 
   return (
@@ -552,10 +613,10 @@ const QuantumCircuit = () => {
           </div>
         )}
 
-        {/* PHASE GATE PARAMETER MODAL */}
-        {phaseModalOpen && (
+        {/* ROTATION/PHASE GATE PARAMETER MODAL */}
+        {rotationModalOpen && (
           <div
-            onClick={handlePhaseCancel}
+            onClick={handleRotationCancel}
             style={{
               position: "fixed",
               top: 0,
@@ -579,39 +640,44 @@ const QuantumCircuit = () => {
                 minWidth: "300px",
               }}
             >
-              <h2>Set Phase Angle (θ)</h2>
+              <h2>{getRotationModalContent().title}</h2>
               <div style={{ margin: "20px 0" }}>
                 <MathJax>
-                  {`$$P(\\theta) = \\begin{pmatrix} 1 & 0 \\\\ 0 & e^{i\\theta} \\end{pmatrix}$$`}
+                  {getRotationModalContent().latex}
                 </MathJax>
               </div>
               <div style={{ margin: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <label style={{ marginRight: "10px" }}>θ (degrees): </label>
                 <input
                   type="number"
-                  value={phaseValue}
-                  onChange={(e) => setPhaseValue(parseFloat(e.target.value) || 0)}
+                  min="1"
+                  max="360"
+                  value={rotationValue}
+                  onChange={handleRotationInputChange}
                   style={{ width: "80px", padding: "4px" }}
                 />
               </div>
               <div style={{ margin: "10px" }}>
                 <input
                   type="range"
-                  min="0"
+                  min="1"
                   max="360"
                   step="1"
-                  value={phaseValue}
-                  onChange={(e) => setPhaseValue(parseFloat(e.target.value))}
+                  value={rotationValue}
+                  onChange={handleRotationInputChange}
                   style={{ width: "100%" }}
                 />
+                <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
+                  Note: Angle must be between 1° and 360°
+                </div>
               </div>
               <button
-                onClick={handlePhaseConfirm}
+                onClick={handleRotationConfirm}
                 style={{ marginRight: "10px" }}
               >
                 Confirm
               </button>
-              <button onClick={handlePhaseCancel}>Cancel</button>
+              <button onClick={handleRotationCancel}>Cancel</button>
             </div>
           </div>
         )}
