@@ -8,10 +8,10 @@ import { Button } from "./ui/button";
 // CONFIG CONSTANTS
 // =======================
 const qubitSpacing = 50; // vertical spacing between qubit lines
-const numQubits = 5;     // Q0 through Q4
+const numQubits = 5;     // Q0 through Qn
 const gateSize = 45;     // width/height for single-qubit gate squares
 const canvasMinX = 50;   // left bound for gates on the stage
-const canvasMaxX = 750 - gateSize; // right bound so gate stays visible
+const canvasMaxX = window.innerWidth - 125 - gateSize; // right bound so gate stays visible
 
 // =======================
 // GATE LIST
@@ -316,7 +316,7 @@ const QubitLine = ({ y, label, onClickQubit }) => (
             listening={true}
             onClick={onClickQubit}
         />
-        <Line points={[50, y, 750, y]} stroke="black" strokeWidth={2} />
+        <Line points={[50, y, window.innerWidth - 125, y]} stroke="black" strokeWidth={2} />
     </Group>
 );
 
@@ -689,7 +689,7 @@ const QuantumCircuit = () => {
                 <div
                     style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(6, 1fr)",
+                        gridTemplateColumns: "repeat(7, 1fr)",
                         padding: "10px",
                         border: "3px solid black",
                         borderRadius: "5px",
@@ -738,7 +738,7 @@ const QuantumCircuit = () => {
                             boxShadow: "0px 0px 5px rgba(0,0,0,0.3)",
                         }}
                     >
-                        <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
+                        <div style={{ fontWeight: "bold", marginBottom: "4px", textAlign: "center" }}>
                             {tooltip.desc}
                         </div>
                         <MathJax dynamic inline>
@@ -750,12 +750,13 @@ const QuantumCircuit = () => {
                 {/* STAGE: QUBIT LINES & GATES */}
                 <Stage
                     ref={stageRef}
-                    width={800}
-                    height={300}
+                    width={window.innerWidth - 100} 
+                    height={(numQubits + 1) * qubitSpacing}
                     style={{
                         border: "3px solid black",
                         background: "white",
                         borderRadius: "5px",
+                        overflow: "auto"
                     }}
                 >
                     <Layer>
