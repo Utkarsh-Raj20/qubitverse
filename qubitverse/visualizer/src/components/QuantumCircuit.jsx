@@ -8,10 +8,10 @@ import { Button } from "./ui/button";
 // CONFIG CONSTANTS
 // =======================
 const qubitSpacing = 50; // vertical spacing between qubit lines
-const numQubits = 5;     // Q0 through Qn
+export const numQubits = 50;     // Q0 through Qn
 const gateSize = 45;     // width/height for single-qubit gate squares
 const canvasMinX = 50;   // left bound for gates on the stage
-const canvasMaxX = window.innerWidth - 125 - gateSize; // right bound so gate stays visible
+const canvasMaxX = window.innerWidth - 175 - gateSize; // right bound so gate stays visible
 
 // =======================
 // GATE LIST
@@ -316,7 +316,7 @@ const QubitLine = ({ y, label, onClickQubit }) => (
             listening={true}
             onClick={onClickQubit}
         />
-        <Line points={[50, y, window.innerWidth - 125, y]} stroke="black" strokeWidth={2} />
+        <Line points={[50, y, window.innerWidth - 175, y]} stroke="black" strokeWidth={2} />
     </Group>
 );
 
@@ -662,8 +662,8 @@ const QuantumCircuit = () => {
         const rect = e.target.getBoundingClientRect();
         setTooltip({
             visible: true,
-            x: rect.left + 150,
-            y: rect.bottom - 150,
+            x: rect.left + window.scrollX + 150,
+            y: rect.bottom + window.scrollY - 150,
             desc: gateTooltips[gate].desc,
             latex: gateTooltips[gate].latex,
         });
@@ -688,13 +688,16 @@ const QuantumCircuit = () => {
                 {/* TOP MENU */}
                 <div
                     style={{
+                        position: "fixed",
                         display: "grid",
-                        gridTemplateColumns: "repeat(7, 1fr)",
                         padding: "10px",
                         border: "3px solid black",
                         borderRadius: "5px",
                         background: "white",
-                        marginBottom: "20px",
+                        top: "50%",
+                        left: "5px",
+                        gridTemplateRows: "repeat(14, 1fr)",
+                        transform: "translateY(-50%)"
                     }}
                 >
                     {gatesList.map((gate, index) => (
@@ -712,11 +715,16 @@ const QuantumCircuit = () => {
                                 cursor: "grab",
                                 background: "white",
                                 fontFamily: "Fira Code, monospace",
+                                transition: "background-color 0.2s ease",
                             }}
                             draggable
                             onDragStart={(e) => e.dataTransfer.setData("text/plain", gate)}
                             onMouseEnter={(e) => handleTooltipEnter(e, gate)}
-                            onMouseLeave={handleTooltipLeave}
+                            onMouseMove={(e) => { e.currentTarget.style.background = "#D0E8FF"; }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "white";
+                                handleTooltipLeave(e);
+                            }}
                         >
                             {gate}
                         </div>
@@ -750,13 +758,14 @@ const QuantumCircuit = () => {
                 {/* STAGE: QUBIT LINES & GATES */}
                 <Stage
                     ref={stageRef}
-                    width={window.innerWidth - 100} 
+                    width={window.innerWidth - 150}
                     height={(numQubits + 1) * qubitSpacing}
                     style={{
                         border: "3px solid black",
                         background: "white",
                         borderRadius: "5px",
-                        overflow: "auto"
+                        overflow: "auto",
+                        marginLeft: "75px"
                     }}
                 >
                     <Layer>
@@ -1146,7 +1155,7 @@ const QuantumCircuit = () => {
             </div>
 
             {/* CircuitDataExtractor or other component that processes the final state */}
-            <CircuitDataExtractor gates={gates} cnotGates={cnotGates} />
+            <CircuitDataExtractor gates={gates} cnotGates={cnotGates} czGates={czGates} swapGates={swapGates} />
         </MathJaxContext>
     );
 };
