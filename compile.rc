@@ -26,7 +26,7 @@ depends('./qubitverse/simulator/simulator/simulator.cc')
     if os == 'windows'
         release_args = ['/std:c++latest', '/O2', '/DNDEBUG', '/EHsc']
     else
-        release_args = ['-std=c++23', '-O3', '-DNDEBUG', '-march=native', '-mtune=native', '-masm=intel', '-funroll-all-loops']
+        release_args = ['-std=c++23', '-O3', '-DNDEBUG', '-march=native', '-mtune=native', '-masm=intel', '-funroll-all-loops', '-pthread']
         debug_args = ['-std=c++23', '-g', '-pg', '-ggdb3', '-Wall', '-Wextra', '-Wuninitialized', '-Wstrict-aliasing', '-Wshadow', '-pedantic', '-Wmissing-declarations', '-Wmissing-include-dirs', '-Wnoexcept', '-Wunused']
     endif
 
