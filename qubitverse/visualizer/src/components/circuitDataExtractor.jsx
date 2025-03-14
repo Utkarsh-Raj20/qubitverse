@@ -80,6 +80,19 @@ export function extractCircuitData(gates, cnotGates, czGates, swapGates) {
     };
 }
 
+export function quantum_encode(cktData) {
+    let s = "n:" + cktData.numQubits + "\n";
+    for (let i = 0; i < cktData.gates.length; i++) {
+        for (const key in cktData.gates[i]) {
+            if (Object.hasOwn(cktData.gates[i], key)) {
+                s += key + ":" + cktData.gates[i][key] + "\n";
+            }
+        }
+        s += "@\n";
+    }
+    return s;
+}
+
 export default function CircuitDataExtractor({ gates, cnotGates, czGates, swapGates }) {
     const [isOpen, setIsOpen] = useState(false);
     const [circuitData, setCircuitData] = useState(null);
@@ -88,34 +101,6 @@ export default function CircuitDataExtractor({ gates, cnotGates, czGates, swapGa
         const data = extractCircuitData(gates, cnotGates, czGates, swapGates);
         setCircuitData(data);
         setIsOpen(true);
-    };
-
-    const handleCopyToClipboard = () => {
-        if (circuitData) {
-            navigator.clipboard
-                .writeText(JSON.stringify(circuitData, null, 2))
-                .then(() => {
-                    alert("Circuit data copied to clipboard!");
-                })
-                .catch((err) => {
-                    console.error("Failed to copy: ", err);
-                });
-        }
-    };
-
-    const handleDownloadJSON = () => {
-        if (circuitData) {
-            const dataStr = JSON.stringify(circuitData, null, 2);
-            const dataUri =
-                "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
-
-            const downloadLink = document.createElement("a");
-            downloadLink.setAttribute("href", dataUri);
-            downloadLink.setAttribute("download", "quantum-circuit.json");
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-        }
     };
 
     return (
@@ -130,7 +115,7 @@ export default function CircuitDataExtractor({ gates, cnotGates, czGates, swapGa
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Quantum Circuit Data (JSON)</DialogTitle>
+                        <DialogTitle>Quantum Circuit Data</DialogTitle>
                         <DialogDescription>
                             This is the extracted data representation of your quantum circuit
                         </DialogDescription>
@@ -138,15 +123,8 @@ export default function CircuitDataExtractor({ gates, cnotGates, czGates, swapGa
 
                     <div className="bg-muted p-4 rounded-md overflow-auto max-h-[60vh]">
                         <pre className="text-sm">
-                            {circuitData ? JSON.stringify(circuitData, null, 2) : ""}
+                            {circuitData ? quantum_encode(circuitData) : ""}
                         </pre>
-                    </div>
-
-                    <div className="flex justify-end gap-2 mt-4">
-                        <Button variant="outline" onClick={handleCopyToClipboard}>
-                            Copy to Clipboard
-                        </Button>
-                        <Button onClick={handleDownloadJSON}>Download JSON</Button>
                     </div>
                 </DialogContent>
             </Dialog>
