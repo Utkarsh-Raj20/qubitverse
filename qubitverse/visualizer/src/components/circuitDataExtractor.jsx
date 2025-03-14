@@ -15,12 +15,11 @@ export function extractCircuitData(gates, cnotGates, czGates, swapGates) {
     const processedGates = gates.map((gate) => {
         // Calculate which qubit this gate is on based on y position
         const qubitIndex = Math.round((gate.y + 20) / 50) - 1; // 20 is half of gateSize, 50 is qubitSpacing
-
         return {
             type: "single",
             gateType: gate.text, // X, Y, H, etc.
             qubit: qubitIndex,
-            theta: gate.theta,
+            theta: Object.hasOwn(gate, "params") === false ? -1 : gate.params.theta,
             position: gate.x,
         };
     });
@@ -78,41 +77,6 @@ export function extractCircuitData(gates, cnotGates, czGates, swapGates) {
     return {
         numQubits: numQubits,
         gates: allGates,
-        gatesByQubit,
-        // Add execution order for each qubit
-        executionOrder: Object.keys(gatesByQubit).reduce((acc, qubit) => {
-            acc[qubit] = gatesByQubit[qubit].map((gate) => {
-                if (gate.type === "single") {
-                    return {
-                        operation: gate.gateType,
-                        qubit: gate.qubit,
-                        position: gate.position,
-                    };
-                } else if (gate.type === "cnot") {
-                    return {
-                        operation: "CNOT",
-                        control: gate.control,
-                        target: gate.target,
-                        position: gate.position,
-                    };
-                } else if (gate.type === "cz") {
-                    return {
-                        operation: "CZ",
-                        control: gate.control,
-                        target: gate.target,
-                        position: gate.position
-                    };
-                } else if (gate.type === "swap") {
-                    return {
-                        operation: "SWAP",
-                        qubit1: gate.qubit1,
-                        qubit2: gate.qubit2,
-                        position: gate.position
-                    };
-                }
-            });
-            return acc;
-        }, {}),
     };
 }
 
