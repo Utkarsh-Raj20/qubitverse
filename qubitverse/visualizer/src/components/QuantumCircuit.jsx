@@ -8,7 +8,7 @@ import { Button } from "./ui/button";
 // CONFIG CONSTANTS
 // =======================
 const qubitSpacing = 50; // vertical spacing between qubit lines
-export const numQubits = 50; // Q0 through Qn
+export const numQubits = 10; // Q0 through Qn
 const gateSize = 45; // width/height for single-qubit gate squares
 const canvasMinX = 50; // left bound for gates on the stage
 const canvasMaxX = window.innerWidth - 175 - gateSize; // right bound so gate stays visible

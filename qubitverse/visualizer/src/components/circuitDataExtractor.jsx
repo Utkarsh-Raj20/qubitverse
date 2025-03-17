@@ -97,10 +97,18 @@ export default function CircuitDataExtractor({ gates, cnotGates, czGates, swapGa
     const [isOpen, setIsOpen] = useState(false);
     const [circuitData, setCircuitData] = useState(null);
 
-    const handleExtractData = () => {
+    const handleExtractData =async () => {
         const data = extractCircuitData(gates, cnotGates, czGates, swapGates);
         setCircuitData(data);
         setIsOpen(true);
+        const response = await fetch("http://localhost:5000/encode", {
+            method: "POST",
+            headers: {
+                "Content-Type": "text/plain",
+            },
+            body: quantum_encode(data),
+        });
+        console.log(response);
     };
 
     return (
