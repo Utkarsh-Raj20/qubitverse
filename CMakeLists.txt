@@ -14,6 +14,8 @@ include_directories(
 # Add source files
 set(SOURCES
     ./qubitverse/simulator/simulator/simulator.cc
+    ./qubitverse/simulator/lexer/lexer.cc
+    ./qubitverse/simulator/parser/parser.cc
 )
 
 # Create the executable target
