@@ -10,8 +10,15 @@ endif
 
 # DEPS
 
+depends('./qubitverse/simulator/dep/httplib.h')
 depends('./qubitverse/simulator/gates/gates.hh')
 depends('./qubitverse/simulator/simulator/simulator.cc')
+depends('./qubitverse/simulator/lexer/lexer.hh')
+depends('./qubitverse/simulator/lexer/lexer.cc')
+depends('./qubitverse/simulator/lexer/token.hh')
+depends('./qubitverse/simulator/parser/parser.hh')
+depends('./qubitverse/simulator/parser/parser.cc')
+depends('./qubitverse/simulator/parser/ast.hh')
 
 # Targets
 
@@ -32,6 +39,8 @@ depends('./qubitverse/simulator/simulator/simulator.cc')
 
 [sources]:
     1 = './qubitverse/simulator/simulator/simulator.cc'
+    2 = './qubitverse/simulator/lexer/lexer.cc'
+    3 = './qubitverse/simulator/parser/parser.cc'
 
 [output]:
     if os == 'windows'
