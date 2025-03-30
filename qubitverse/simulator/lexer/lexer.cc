@@ -67,8 +67,20 @@ namespace simulator
         return true;
     }
 
-    std::vector<token> &&lexer::get()
+    std::vector<token> &lexer::get()
     {
-        return std::move(this->M_data);
+        return this->M_data;
     }
-};
+
+    void lexer::debug_print() const
+    {
+        const char *strs[3] = {
+            "IDEN",
+            "COLON",
+            "SEP"};
+        for (const auto &i : this->M_data)
+        {
+            std::printf("[%s]: '%s'\n", strs[(unsigned)i.M_type], i.M_val.c_str());
+        }
+    }
+}

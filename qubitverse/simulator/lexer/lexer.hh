@@ -21,7 +21,8 @@ namespace simulator
       public:
         lexer() = default;
         [[nodiscard]] bool perform(const std::string &__s);
-        [[nodiscard]] std::vector<token> &&get();
+        [[nodiscard]] std::vector<token> &get();
+        void debug_print() const;
         ~lexer() = default;
     };
 }
