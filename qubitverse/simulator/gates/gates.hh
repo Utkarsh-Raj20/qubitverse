@@ -89,6 +89,7 @@ namespace simulator
         const std::size_t memory_consumption() const;
         const std::size_t &no_of_qubits() const;
         void get_nth_qubit(complex (&__s)[2], const std::size_t &nth) const;
+        double *&compute_probabilities(double *&probs) const;
         std::size_t measure();
         qubit &operator=(const qubit &q);
         qubit &operator=(qubit &&q) noexcept(true);
@@ -391,6 +392,17 @@ namespace simulator
             __s[0] /= norm;
             __s[1] /= norm;
         }
+    }
+
+    double *&qubit::compute_probabilities(double *&probs) const
+    {
+        if (!probs)
+            return probs;
+        for (std::size_t i = 0; i < this->M_len; i++)
+        {
+            probs[i] = std::norm(this->M_qubits[i]);
+        }
+        return probs;
     }
 
     std::size_t qubit::measure()
