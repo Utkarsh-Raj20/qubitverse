@@ -86,7 +86,7 @@ namespace simulator
         qubit &apply_swap(const std::size_t &qubit_1, const std::size_t &qubit_2);
         const complex *get_qubits() const;
         const std::size_t &get_size() const;
-        const std::size_t &memory_consumption() const;
+        const std::size_t memory_consumption() const;
         const std::size_t &no_of_qubits() const;
         void get_nth_qubit(complex (&__s)[2], const std::size_t &nth) const;
         std::size_t measure();
@@ -364,7 +364,7 @@ namespace simulator
         return this->M_len;
     }
 
-    const std::size_t &qubit::memory_consumption() const
+    const std::size_t qubit::memory_consumption() const
     {
         return sizeof(complex) * (this->M_len);
     }
