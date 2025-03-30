@@ -1,9 +1,11 @@
 import QuantumCircuit from "./components/QuantumCircuit";
 import "./App.css";
+import Navbar from "./components/Navbar";
+
 function App() {
   return (
     <>
-      <h1 className="text-4xl font-bold text-gray-900 text-center font-mono p-5" style={{userSelect: "none"}}>Quantum Computer Simulator</h1>
+      <Navbar />
       <QuantumCircuit />
     </>
   );
