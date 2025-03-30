@@ -24,6 +24,7 @@ namespace simulator
         parser() = default;
         [[nodiscard]] bool perform(std::vector<token> &toks);
         [[nodiscard]] std::vector<std::unique_ptr<ast_node>> &get();
+        [[nodiscard]] const std::size_t &get_no_qubits() const;
         void debug_print() const;
         ~parser() = default;
     };

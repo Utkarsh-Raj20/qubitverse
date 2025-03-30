@@ -14,7 +14,7 @@ namespace simulator
         if (toks[i].M_val == "n")
             i += 2; // skips n at 0, then ':' at 1
         this->M_nqubs = std::stoul(toks[i++].M_val, (std::size_t *)0, 10);
-        // this->M_gatelist.reserve(this->M_nqubs);
+        this->M_gatelist.reserve(this->M_nqubs);
 
         for (; i < toks.size();)
         {
@@ -98,6 +98,11 @@ namespace simulator
     std::vector<std::unique_ptr<ast_node>> &parser::get()
     {
         return this->M_gatelist;
+    }
+
+    const std::size_t &parser::get_no_qubits() const
+    {
+        return this->M_nqubs;
     }
 
     void parser::debug_print() const
