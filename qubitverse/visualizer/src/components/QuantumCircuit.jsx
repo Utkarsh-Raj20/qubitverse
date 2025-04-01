@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Stage, Layer, Line, Rect, Text, Group, Circle } from "react-konva";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-import CircuitDataExtractor from "./circuitDataExtractor";
+import SendToBackEnd_Calculate from "./SendToBackEnd";
 import { Button } from "./ui/button";
+import InteractiveBarGraph from "./ProbGraph";
+import HilbertSpaceResult from "./HilbertSpaceResult";
+import { DataSet } from "vis-network/standalone";
 
 // =======================
 // CONFIG CONSTANTS
@@ -348,6 +351,9 @@ const QuantumCircuit = () => {
         const parsedValue = parseInt(input, 10);
         return !isNaN(parsedValue) && parsedValue > 0 ? parsedValue : 0;
     });
+
+    // Probs Data for BarGraph
+    const [probData, setProbData] = useState([]);
     // Single-qubit gates
     const [gates, setGates] = useState([]); // { x, y, text, params? }
     // CNOT gates
@@ -489,7 +495,9 @@ const QuantumCircuit = () => {
     // DRAG & DROP LOGIC
     // =======================
     useEffect(() => {
+        if (!stageRef.current) return;
         const container = stageRef.current.container();
+
         const handleDrop = (e) => {
             e.preventDefault();
             const rect = container.getBoundingClientRect();
@@ -507,12 +515,7 @@ const QuantumCircuit = () => {
             } else if (gateType === "SWAP") {
                 setSwapModalOpen(true);
                 setSwapX(pointerX);
-            } else if (
-                gateType === "P" ||
-                gateType === "Rx" ||
-                gateType === "Ry" ||
-                gateType === "Rz"
-            ) {
+            } else if (["P", "Rx", "Ry", "Rz"].includes(gateType)) {
                 const snappedY = snapY(pointerY);
                 setRotationModalOpen(true);
                 setRotationX(pointerX);
@@ -528,14 +531,17 @@ const QuantumCircuit = () => {
                 ]);
             }
         };
+
         const handleDragOver = (e) => e.preventDefault();
+
         container.addEventListener("drop", handleDrop);
         container.addEventListener("dragover", handleDragOver);
+
         return () => {
             container.removeEventListener("drop", handleDrop);
             container.removeEventListener("dragover", handleDragOver);
         };
-    }, []);
+    }, [stageRef.current]);
 
     // =======================
     // DRAG END HANDLERS
@@ -748,7 +754,7 @@ const QuantumCircuit = () => {
             <div className="p-4">
                 {/* Tab Buttons */}
                 <div className="sticky top-0 left-[220px] right-0 bg-white z-50 flex space-x-4 border-b mb-4 py-2 px-4">
-                    {["Circuit", "Result"].map((tab) => (
+                    {["Circuit", "Result", "Probability"].map((tab) => (
                         <button
                             key={tab}
                             className={`p-2 transition-all ${activeTab === tab
@@ -781,6 +787,7 @@ const QuantumCircuit = () => {
                         transform: "translateY(-50%)",
                     }}
                 >
+                    <h2 className="text-l font-bold text-gray-800" style={{ userSelect: "none", textAlign: "center" }}>Quantum Gates</h2>
                     {/* Gates box */}
                     <div
                         style={{
@@ -808,6 +815,7 @@ const QuantumCircuit = () => {
                                     style={{
                                         width: gateSize,
                                         height: gateSize,
+                                        userSelect: "none",
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
@@ -845,6 +853,11 @@ const QuantumCircuit = () => {
                             userSelect: "none"
                         }}
                     >
+                        <SendToBackEnd_Calculate gates={gates}
+                            cnotGates={cnotGates}
+                            czGates={czGates}
+                            swapGates={swapGates}
+                            numQubits={numQubits} />
                         <Button
                             variant="outline"
                             style={{
@@ -852,7 +865,7 @@ const QuantumCircuit = () => {
                                 padding: "10px",
                             }}
                         >
-                            Calculate
+                            Probability
                         </Button>
                         <Button
                             variant="outline"
@@ -862,15 +875,6 @@ const QuantumCircuit = () => {
                             }}
                         >
                             Measure
-                        </Button>
-                        <Button
-                            variant="outline"
-                            style={{
-                                width: "100%",
-                                padding: "10px",
-                            }}
-                        >
-                            Probability
                         </Button>
                     </div>
                 </div>
@@ -883,41 +887,41 @@ const QuantumCircuit = () => {
                         position: "relative",
                     }}
                 >
+                    {/* TOOLTIP */}
+                    {!isDragging && tooltip.visible && (
+                        <div
+                            style={{
+                                position: "fixed",
+                                top: tooltip.y,
+                                left: tooltip.x,
+                                background: "rgba(255,255,255,0.97)",
+                                padding: "8px",
+                                border: "1px solid #ccc",
+                                borderRadius: "4px",
+                                zIndex: 1000,
+                                boxShadow: "0px 0px 5px rgba(0,0,0,0.3)",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    fontWeight: "bold",
+                                    marginBottom: "4px",
+                                    textAlign: "center",
+                                    userSelect: "none"
+                                }}
+                            >
+                                {tooltip.desc}
+                            </div>
+                            <MathJax dynamic inline>
+                                {tooltip.latex}
+                            </MathJax>
+                        </div>
+                    )}
                     {activeTab === "Circuit" ? (
                         <>
-                            {/* TOOLTIP */}
-                            {!isDragging && tooltip.visible && (
-                                <div
-                                    style={{
-                                        position: "fixed",
-                                        top: tooltip.y,
-                                        left: tooltip.x,
-                                        background: "rgba(255,255,255,0.97)",
-                                        padding: "8px",
-                                        border: "1px solid #ccc",
-                                        borderRadius: "4px",
-                                        zIndex: 1000,
-                                        boxShadow: "0px 0px 5px rgba(0,0,0,0.3)",
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            fontWeight: "bold",
-                                            marginBottom: "4px",
-                                            textAlign: "center",
-                                            userSelect: "none"
-                                        }}
-                                    >
-                                        {tooltip.desc}
-                                    </div>
-                                    <MathJax dynamic inline>
-                                        {tooltip.latex}
-                                    </MathJax>
-                                </div>
-                            )}
-
                             {/* STAGE: QUBIT LINES & GATES */}
                             <Stage
+                                key={activeTab}
                                 ref={stageRef}
                                 width={window.innerWidth - 280}
                                 height={(numQubits + 1) * qubitSpacing}
@@ -998,22 +1002,43 @@ const QuantumCircuit = () => {
                                 </Layer>
                             </Stage>
                         </>
-                    ) : (
-                        // Result Tab: big text box
-                        <textarea
-                            style={{
-                                width: "100%",
-                                height: "calc(100vh - 185px)",
-                                overflow: "auto",
-                                fontSize: "16px",
-                                padding: "10px",
-                                fontFamily: "monospace, monospace",
-
-                            }}
-                            readOnly="true"
-                            placeholder="Click on Calculate to get result"
-                        />
-                    )}
+                    ) : activeTab === "Result" ? (
+                        <HilbertSpaceResult nodes={new DataSet([
+                            {
+                                id: 1,
+                                label: "Initial State",
+                                originalLabel: "Initial State",
+                                expanded: false,
+                                values: [
+                                    { qubit: "Q0", value: "0.717" },
+                                    { qubit: "Q1", value: "0.707" },
+                                ],
+                            },
+                            {
+                                id: 2,
+                                label: "After Applying H Gate",
+                                originalLabel: "After Applying H Gate",
+                                expanded: false,
+                                values: [
+                                    { qubit: "Q0", value: "0.500" },
+                                    { qubit: "Q1", value: "0.866" },
+                                ],
+                            },
+                            {
+                                id: 3,
+                                label: "After Applying X Gate",
+                                originalLabel: "After Applying X Gate",
+                                expanded: false,
+                                values: [
+                                    { qubit: "Q0", value: "0.808" },
+                                    { qubit: "Q1", value: "-0.3123" },
+                                ],
+                            },
+                        ])} edges={new DataSet([{ from: 1, to: 2 }, { from: 2, to: 3 }])} />
+                    ) : activeTab === "Probability" ? (
+                        // an interactive graph
+                        <InteractiveBarGraph probs={probData} />
+                    ) : null}
                 </div>
             </div>
 
@@ -1339,15 +1364,6 @@ const QuantumCircuit = () => {
                     </div>
                 </div>
             )}
-
-            {/* CircuitDataExtractor or other component that processes the final state
-            <CircuitDataExtractor
-                gates={gates}
-                cnotGates={cnotGates}
-                czGates={czGates}
-                swapGates={swapGates}
-                numQubits={numQubits}
-            /> */}
         </MathJaxContext>
     );
 };
