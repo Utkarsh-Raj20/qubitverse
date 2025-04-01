@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 
-
-
 export default function InteractiveBarGraph({ probs }) {
     const [activeIndex, setActiveIndex] = useState(null);
 
