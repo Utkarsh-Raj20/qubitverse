@@ -1,20 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import { DataSet, Network } from "vis-network/standalone";
 
-function HilbertSpaceResult({ nodes, edges }) {
+function HilbertSpaceResult({ nodes, edges, measuredValue }) {
     const containerRef = useRef(null);
     const networkRef = useRef(null);
     const [network, setNetwork] = useState(null);
+    const [graphData, setGraphData] = useState({ nodes, edges });
 
     useEffect(() => {
         if (containerRef.current && !networkRef.current) {
-            const data = { nodes, edges };
             const options = {
                 nodes: {
                     shape: "box",
                     margin: 10,
                     font: { face: "monospace", size: 14 },
-                    widthConstraint: { maximum: 200 },
+                    widthConstraint: "100%",
                 },
                 edges: {
                     arrows: "to",
@@ -29,6 +29,7 @@ function HilbertSpaceResult({ nodes, edges }) {
                     enabled: false,
                 },
                 layout: {
+                    randomSeed: 1,
                     improvedLayout: true,
                     hierarchical: {
                         enabled: false,
@@ -38,7 +39,7 @@ function HilbertSpaceResult({ nodes, edges }) {
                 },
             };
 
-            networkRef.current = new Network(containerRef.current, data, options);
+            networkRef.current = new Network(containerRef.current, graphData, options);
 
             // When a node is clicked, toggle its expanded state.
             networkRef.current.on("click", (params) => {
@@ -87,7 +88,7 @@ function HilbertSpaceResult({ nodes, edges }) {
                 className="text-xl font-bold text-gray-800"
                 style={{ userSelect: "none", color: "#36802D", paddingTop: "15px" }}
             >
-                Measurement: ?!
+                Measurement: {measuredValue}
             </h1>
         </div>
     );
