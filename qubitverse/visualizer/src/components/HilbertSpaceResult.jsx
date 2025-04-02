@@ -14,7 +14,7 @@ function HilbertSpaceResult({ nodes, edges, measuredValue }) {
                     shape: "box",
                     margin: 10,
                     font: { face: "monospace", size: 14 },
-                    widthConstraint: "100%",
+                    widthConstraint: {maximum: 1000},
                 },
                 edges: {
                     arrows: "to",
