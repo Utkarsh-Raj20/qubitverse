@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import ParseResultData from "./ParseResultData";
 
 // This function extracts circuit data from the gates state
 function extractCircuitData(gates, cnotGates, czGates, swapGates, nQ) {
@@ -58,8 +58,8 @@ function extractCircuitData(gates, cnotGates, czGates, swapGates, nQ) {
     };
 }
 
-function quantum_encode(cktData) {
-    let s = "n:" + cktData.numQubits + "\n";
+function quantum_encode(cktData, feature) {
+    let s = feature + "n:" + cktData.numQubits + "\n";
     for (let i = 0; i < cktData.gates.length; i++) {
         for (const key in cktData.gates[i]) {
             if (Object.hasOwn(cktData.gates[i], key)) {
@@ -71,9 +71,7 @@ function quantum_encode(cktData) {
     return s;
 }
 
-export function SendToBackEnd_Calculate({ gates, cnotGates, czGates, swapGates, numQubits }) {
-    const [circuitData, setCircuitData] = useState(null);
-
+export function SendToBackEnd_Calculate({ gates, cnotGates, czGates, swapGates, numQubits, setLog, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue }) {
     const request_backend = async (dat) => {
         try {
             const response = await fetch('http://localhost:9080/api/endpoint', {
@@ -90,23 +88,65 @@ export function SendToBackEnd_Calculate({ gates, cnotGates, czGates, swapGates, 
         }
     };
 
-    const handleExtractData = () => {
-        const rtCktData = extractCircuitData(gates, cnotGates, czGates, swapGates, numQubits);
-        setCircuitData(rtCktData);
-        request_backend(quantum_encode(rtCktData)).then(responseText => { console.log(responseText); });
+    const sendCalculate = () => {
+        request_backend(
+            quantum_encode(extractCircuitData(gates, cnotGates, czGates, swapGates, numQubits), "0")
+        ).then(responseText => { setLog(responseText); ParseResultData({ data: responseText, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue }) });
+
+
+    };
+
+    const sendProbability = () => {
+        request_backend(
+            quantum_encode(extractCircuitData(gates, cnotGates, czGates, swapGates, numQubits), "1")
+        ).then(responseText => { setLog(responseText); ParseResultData({ data: responseText, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue }) });
+    };
+
+    const sendMeasure = () => {
+        request_backend(
+            quantum_encode(extractCircuitData(gates, cnotGates, czGates, swapGates, numQubits), "2")
+        ).then(responseText => { setLog(responseText); ParseResultData({ data: responseText, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue }) });
     };
 
     return (
-        <Button
-            variant="outline"
+        <div
             style={{
-                width: "100%",
-                padding: "10px",
-            }}
-            onClick={handleExtractData}
-        >
-            Calculate
-        </Button>
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px", // equal spacing between buttons
+                userSelect: "none"
+            }}>
+            <Button
+                variant="outline"
+                style={{
+                    width: "100%",
+                    padding: "10px",
+                }}
+                onClick={sendCalculate}
+            >
+                Calculate
+            </Button>
+            <Button
+                variant="outline"
+                style={{
+                    width: "100%",
+                    padding: "10px",
+                }}
+                onClick={sendProbability}
+            >
+                Probability
+            </Button>
+            <Button
+                variant="outline"
+                style={{
+                    width: "100%",
+                    padding: "10px",
+                }}
+                onClick={sendMeasure}
+            >
+                Measure
+            </Button>
+        </div>
     );
 };
 
