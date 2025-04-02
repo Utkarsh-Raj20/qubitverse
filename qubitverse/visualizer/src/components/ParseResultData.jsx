@@ -1,0 +1,101 @@
+const ParseValueLine = (line) => {
+    return line.split("=");
+}
+
+const ParseQubitData = (lines, startIndex) => {
+    let vals = [];
+    let i = startIndex;
+    while (/^[ a-z]+$/i.test(lines[i]) === false && lines[i] !== "") {
+        const tup = ParseValueLine(lines[i]);
+        vals.push({
+            qubit: tup[0] + ": |" + Number(tup[0]).toString(2) + "〉\t",
+            value: tup[1]
+        });
+        i++;
+    }
+    return { values: vals, newIndex: i };
+}
+
+const ParseProbData = (lines, i) => {
+    const tup = ParseValueLine(lines[i]);
+    return { name: tup[0], value: Number(tup[1]) };
+}
+
+export const ParseResultData = ({ data, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue }) => {
+    var vertices = [], edges = [], measured = NaN, prob = [], isMeasureSystem = false;
+    const lines = data.split('\n');
+
+    for (let i = 0, j = 0; i < lines.length; i++) {
+        if (lines[i] === "+") {
+            const { values, newIndex } = ParseQubitData(lines, i + 1); // start after the "+" marker if needed
+            vertices.push({
+                id: j + 1,
+                label: "Initial State",
+                originalLabel: "Initial State",
+                expanded: false,
+                values: values
+            });
+            i = newIndex - 1; // set i to the last processed index; the for-loop will then increment it
+            j++;
+        }
+        else if (lines[i] === "prob") {
+            i++; // skip prob
+            while (/^[ a-z]+$/i.test(lines[i]) === false && lines[i] !== "") {
+                prob.push(ParseProbData(lines, i));
+                i++;
+            }
+            i--;
+        }
+        else if (lines[i] === "measure") {
+            i++;
+            measured = Number(lines[i++]);
+            isMeasureSystem = true;
+        }
+        else {
+            if (lines[i] === "") continue;
+            const { values, newIndex } = ParseQubitData(lines, i + 1); // start after the "+" marker if needed
+            vertices.push({
+                id: j + 1,
+                label: "Applying " + lines[i].toUpperCase() + " Gate",
+                originalLabel: "Applying " + lines[i].toUpperCase() + " Gate",
+                expanded: false,
+                values: values
+            });
+            i = newIndex - 1; // set i to the last processed index; the for-loop will then increment it
+            j++;
+        }
+    }
+
+    if (isMeasureSystem) {
+        // collapse the hilbert-space
+        for (let i = 0; i < prob.length; i++) {
+            prob[i].value = 0;
+        }
+        prob[measured].value = 1;
+
+        let measuredValueVertex = JSON.parse(JSON.stringify(vertices[0].values)); // deep copy
+        for (let i = 0; i < measuredValueVertex.length; i++) {
+            measuredValueVertex[i].value = "(0,0)";
+        }
+        measuredValueVertex[measured].value = "(1,0)";
+
+        vertices.push({
+            id: vertices.length + 1,
+            label: "Measured State",
+            originalLabel: "Measured State",
+            expanded: false,
+            values: measuredValueVertex
+        });
+    }
+
+    for (let i = 0; i < vertices.length - 1; i++) {
+        edges.push({ from: i + 1, to: i + 2 });
+    }
+
+    setProbData(prob);
+    setEdgesResultGraph(edges);
+    setVerticesResultGraph(vertices);
+    setMeasuredValue(measured);
+};
+
+export default ParseResultData;
