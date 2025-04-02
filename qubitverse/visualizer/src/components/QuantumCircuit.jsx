@@ -351,9 +351,16 @@ const QuantumCircuit = () => {
         const parsedValue = parseInt(input, 10);
         return !isNaN(parsedValue) && parsedValue > 0 ? parsedValue : 0;
     });
-
+    // Result or Log Data from the Backend
+    const [resultData, setResultData] = useState(null);
     // Probs Data for BarGraph
     const [probData, setProbData] = useState([]);
+    // Result Graph Edges
+    const [edgesResultGraph, setEdgesResultGraph] = useState(null);
+    // Result Graph Vertices
+    const [verticesResultGraph, setVerticesResultGraph] = useState(null);
+    // Result Measurement
+    const [measuredValue, setMeasuredValue] = useState(NaN);
     // Single-qubit gates
     const [gates, setGates] = useState([]); // { x, y, text, params? }
     // CNOT gates
@@ -754,7 +761,7 @@ const QuantumCircuit = () => {
             <div className="p-4">
                 {/* Tab Buttons */}
                 <div className="sticky top-0 left-[220px] right-0 bg-white z-50 flex space-x-4 border-b mb-4 py-2 px-4">
-                    {["Circuit", "Result", "Probability"].map((tab) => (
+                    {["Circuit", "Result", "Probability", "Log"].map((tab) => (
                         <button
                             key={tab}
                             className={`p-2 transition-all ${activeTab === tab
@@ -845,38 +852,16 @@ const QuantumCircuit = () => {
                     </div>
 
                     {/* Buttons under gates */}
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "10px", // equal spacing between buttons
-                            userSelect: "none"
-                        }}
-                    >
-                        <SendToBackEnd_Calculate gates={gates}
-                            cnotGates={cnotGates}
-                            czGates={czGates}
-                            swapGates={swapGates}
-                            numQubits={numQubits} />
-                        <Button
-                            variant="outline"
-                            style={{
-                                width: "100%",
-                                padding: "10px",
-                            }}
-                        >
-                            Probability
-                        </Button>
-                        <Button
-                            variant="outline"
-                            style={{
-                                width: "100%",
-                                padding: "10px",
-                            }}
-                        >
-                            Measure
-                        </Button>
-                    </div>
+                    <SendToBackEnd_Calculate gates={gates}
+                        cnotGates={cnotGates}
+                        czGates={czGates}
+                        swapGates={swapGates}
+                        numQubits={numQubits}
+                        setLog={setResultData}
+                        setProbData={setProbData}
+                        setEdgesResultGraph={setEdgesResultGraph}
+                        setVerticesResultGraph={setVerticesResultGraph}
+                        setMeasuredValue={setMeasuredValue} />
                 </div>
 
                 {/* Right Content: depends on active tab */}
@@ -1003,42 +988,26 @@ const QuantumCircuit = () => {
                             </Stage>
                         </>
                     ) : activeTab === "Result" ? (
-                        <HilbertSpaceResult nodes={new DataSet([
-                            {
-                                id: 1,
-                                label: "Initial State",
-                                originalLabel: "Initial State",
-                                expanded: false,
-                                values: [
-                                    { qubit: "Q0", value: "0.717" },
-                                    { qubit: "Q1", value: "0.707" },
-                                ],
-                            },
-                            {
-                                id: 2,
-                                label: "After Applying H Gate",
-                                originalLabel: "After Applying H Gate",
-                                expanded: false,
-                                values: [
-                                    { qubit: "Q0", value: "0.500" },
-                                    { qubit: "Q1", value: "0.866" },
-                                ],
-                            },
-                            {
-                                id: 3,
-                                label: "After Applying X Gate",
-                                originalLabel: "After Applying X Gate",
-                                expanded: false,
-                                values: [
-                                    { qubit: "Q0", value: "0.808" },
-                                    { qubit: "Q1", value: "-0.3123" },
-                                ],
-                            },
-                        ])} edges={new DataSet([{ from: 1, to: 2 }, { from: 2, to: 3 }])} />
+                        <HilbertSpaceResult nodes={new DataSet(verticesResultGraph)} edges={new DataSet(edgesResultGraph)} measuredValue={measuredValue} />
                     ) : activeTab === "Probability" ? (
                         // an interactive graph
                         <InteractiveBarGraph probs={probData} />
-                    ) : null}
+                    ) : activeTab === "Log" ? (
+                        <textarea
+                            style={{
+                                width: "100%",
+                                height: "calc(100vh - 185px)",
+                                overflow: "auto",
+                                fontSize: "16px",
+                                padding: "10px",
+                                fontFamily: "monospace, monospace",
+                                resize: "none"
+                            }}
+                            readOnly={true}
+                            placeholder="Log Data from Backend"
+                            value={resultData}
+                        ></textarea>
+                    ) : (null)}
                 </div>
             </div>
 
