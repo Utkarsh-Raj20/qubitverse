@@ -16,121 +16,163 @@ double deg_to_rad(const double &deg)
     return deg * (M_PI / 180.0);
 }
 
-std::string num_binstr(const std::size_t &n, const std::size_t &n_bits)
-{
-    return std::bitset<sizeof(std::size_t) * (sizeof(char) * 8)>(n).to_string().substr((sizeof(std::size_t) * (sizeof(char) * 8)) - n_bits);
-}
-
-void print_quantum_states(const simulator::qubit &q)
+void set_quantum_states(const simulator::qubit &q, std::string &__s, const std::string &gate)
 {
     const simulator::qubit::complex *vec_space = q.get_qubits();
+    std::stringstream ss;
+    ss << gate << "\n";
     for (std::size_t i = 0; i < q.get_size(); i++)
     {
-        std::cout << i << ": |" << num_binstr(i, q.no_of_qubits()) << "〉: " << vec_space[i] << "\n";
+        ss << i << "=" << vec_space[i] << "\n";
     }
+    __s.append(ss.str());
 }
 
-std::string get_quantum_info(const std::size_t &nQ, const std::vector<std::unique_ptr<simulator::ast_node>> &gates, bool measure)
+std::string get_quantum_info(const std::size_t &nQ, const std::vector<std::unique_ptr<simulator::ast_node>> &gates, const char &operation)
 {
+    /*
+    operation:
+    0 -> normal calculations (0)
+    1 -> prob (0, 1)
+    2 -> measure (0, 1, 2)
+    */
     simulator::qubit qsys(nQ);
-    std::puts("Initial State:");
-    print_quantum_states(qsys);
-    for (const auto &i : gates)
+    std::string ret_val;
+
+    std::puts("System is on initial state:");
+    set_quantum_states(qsys, ret_val, "+"); // + indicates initial state
+    for (const std::unique_ptr<simulator::ast_node> &i : gates)
     {
         if (i->get_gate_type() == simulator::gate_type::SINGLE_GATE)
         {
             auto *casted = dynamic_cast<simulator::ast_single_gate_node *>(i.get());
             if (casted->M_gate == "I")
             {
+                std::printf("Applying Identity Gate on Qubit %zu:\n", casted->M_qubit);
                 qsys.apply_identity(casted->M_qubit);
-                std::printf("After Applying Identity Gate on Qubit %zu:\n", casted->M_qubit);
-                print_quantum_states(qsys);
+                set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "X")
             {
+                std::printf("Applying Pauli-X Gate on Qubit %zu:\n", casted->M_qubit);
                 qsys.apply_pauli_x(casted->M_qubit);
-                std::printf("After Applying Pauli-X Gate on Qubit %zu:\n", casted->M_qubit);
-                print_quantum_states(qsys);
+                set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "Y")
             {
+                std::printf("Applying Pauli-Y Gate on Qubit %zu:\n", casted->M_qubit);
                 qsys.apply_pauli_y(casted->M_qubit);
-                std::printf("After Applying Pauli-Y Gate on Qubit %zu:\n", casted->M_qubit);
-                print_quantum_states(qsys);
+                set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "Z")
             {
+                std::printf("Applying Pauli-Z Gate on Qubit %zu:\n", casted->M_qubit);
                 qsys.apply_pauli_z(casted->M_qubit);
-                std::printf("After Applying Pauli-Z Gate on Qubit %zu:\n", casted->M_qubit);
-                print_quantum_states(qsys);
+                set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "H")
             {
+                std::printf("Applying Hadamard Gate on Qubit %zu:\n", casted->M_qubit);
                 qsys.apply_hadamard(casted->M_qubit);
-                std::printf("After Applying Hadamard Gate on Qubit %zu:\n", casted->M_qubit);
-                print_quantum_states(qsys);
+                set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "S")
             {
+                std::printf("Applying Phase Shift Gate by pi/2 on Qubit %zu:\n", casted->M_qubit);
                 qsys.apply_phase_pi_2_shift(casted->M_qubit);
-                std::printf("After Applying Phase Shift Gate by pi/2 on Qubit %zu:\n", casted->M_qubit);
-                print_quantum_states(qsys);
+                set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "T")
             {
+                std::printf("Applying Phase Shift Gate by pi/4 on Qubit %zu:\n", casted->M_qubit);
                 qsys.apply_phase_pi_4_shift(casted->M_qubit);
-                std::printf("After Applying Phase Shift Gate by pi/4 on Qubit %zu:\n", casted->M_qubit);
-                print_quantum_states(qsys);
+                set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "P")
             {
+                std::printf("Applying General Phase Shift Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
                 qsys.apply_phase_general_shift(deg_to_rad(casted->M_theta), casted->M_qubit);
-                std::printf("After Applying General Phase Shift Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
-                print_quantum_states(qsys);
+                set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "Rx")
             {
+                std::printf("Applying Rotation-X Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
                 qsys.apply_rotation_x(deg_to_rad(casted->M_theta), casted->M_qubit);
-                std::printf("After Applying Rotation-X Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
-                print_quantum_states(qsys);
+                set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "Ry")
             {
+                std::printf("Applying Rotation-Y Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
                 qsys.apply_rotation_y(deg_to_rad(casted->M_theta), casted->M_qubit);
-                std::printf("After Applying Rotation-Y Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
-                print_quantum_states(qsys);
+                set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "Rz")
             {
+                std::printf("Applying Rotation-Z Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
                 qsys.apply_rotation_z(deg_to_rad(casted->M_theta), casted->M_qubit);
-                std::printf("After Applying Rotation-Z Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
-                print_quantum_states(qsys);
+                set_quantum_states(qsys, ret_val, casted->M_gate);
             }
         }
         else if (i->get_gate_type() == simulator::gate_type::CNOT_GATE)
         {
             auto *casted = dynamic_cast<simulator::ast_cnot_gate_node *>(i.get());
+            std::printf("Applying CNOT Gate [Control Qubit: %zu, Target Qubit: %zu]:\n", casted->M_control, casted->M_target);
             qsys.apply_cnot(casted->M_control, casted->M_target);
-            std::printf("After Applying CNOT Gate [Control Qubit: %zu, Target Qubit: %zu]:\n", casted->M_control, casted->M_target);
-            print_quantum_states(qsys);
+            set_quantum_states(qsys, ret_val, "cnot");
         }
         else if (i->get_gate_type() == simulator::gate_type::CZ_GATE)
         {
             auto *casted = dynamic_cast<simulator::ast_cz_gate_node *>(i.get());
+            std::printf("Applying CZ Gate [Control Qubit: %zu, Target Qubit: %zu]:\n", casted->M_control, casted->M_target);
             qsys.apply_cz(casted->M_control, casted->M_target);
-            std::printf("After Applying CZ Gate [Control Qubit: %zu, Target Qubit: %zu]:\n", casted->M_control, casted->M_target);
-            print_quantum_states(qsys);
+            set_quantum_states(qsys, ret_val, "cz");
         }
         else if (i->get_gate_type() == simulator::gate_type::SWAP_GATE)
         {
             auto *casted = dynamic_cast<simulator::ast_swap_gate_node *>(i.get());
+            std::printf("Applying SWAP Gate [Qubit1: %zu, Qubit2: %zu]:\n", casted->M_qubit1, casted->M_qubit2);
             qsys.apply_swap(casted->M_qubit1, casted->M_qubit2);
-            std::printf("After Applying SWAP Gate [Qubit1: %zu, Qubit2: %zu]:\n", casted->M_qubit1, casted->M_qubit2);
-            print_quantum_states(qsys);
+            set_quantum_states(qsys, ret_val, "swap");
         }
     }
 
-    return "Done Operations\n";
+    if (operation == '0')
+        return ret_val;
+    else if (operation == '1')
+    {
+        ret_val.append("prob\n");
+        double *vec_prob = new double[qsys.get_size()]();
+        std::puts("Computing Probabilities:");
+        qsys.compute_probabilities(vec_prob);
+
+        std::stringstream ss;
+        for (std::size_t i = 0; i < qsys.get_size(); i++)
+        {
+            ss << i << "=" << vec_prob[i] << "\n";
+        }
+        ret_val.append(ss.str());
+        return ret_val;
+    }
+    else if (operation == '2')
+    {
+        ret_val.append("prob\n");
+        double *vec_prob = new double[qsys.get_size()]();
+        std::puts("Computing Probabilities:");
+        qsys.compute_probabilities(vec_prob);
+
+        std::stringstream ss;
+        for (std::size_t i = 0; i < qsys.get_size(); i++)
+        {
+            ss << i << "=" << vec_prob[i] << "\n";
+        }
+
+        std::puts("Measuring the state:");
+        ss << "measure\n"
+           << qsys.measure() << "\n";
+
+        ret_val.append(ss.str());
+        return ret_val;
+    }
 }
 
 int main(void)
@@ -138,22 +180,22 @@ int main(void)
     httplib::Server svr;
     svr.Post("/api/endpoint", [](const httplib::Request &req, httplib::Response &res)
              {
+                char feature = req.body[0];
+                simulator::lexer lex;
+                lex.perform(req.body.substr(1));
 
-        simulator::lexer lex;
-        lex.perform(req.body);
+                simulator::parser parser;
+                parser.perform(lex.get());
+                parser.debug_print();
 
-        simulator::parser parser;
-        parser.perform(lex.get());
-        parser.debug_print();
+                std::string reply = get_quantum_info(parser.get_no_qubits(), parser.get(), feature);
 
-        std::string reply = get_quantum_info(parser.get_no_qubits(), parser.get(), false);
+                // Set CORS header
+                res.set_header("Access-Control-Allow-Origin", "http://localhost:5173");
 
-        // Set CORS header
-        res.set_header("Access-Control-Allow-Origin", "http://localhost:5173");
-        
-        // Set the response content as plain text
-        res.set_content(reply, "text/plain");
-        std::puts("---------------------------------------------------------------------"); });
+                // Set the response content as plain text
+                res.set_content(reply, "text/plain");
+                std::puts("---------------------------------------------------------------------"); });
 
     // Start the server on port 9080
     svr.listen("0.0.0.0", 9080);
