@@ -12,6 +12,7 @@ endif
 
 depends('./qubitverse/simulator/dep/httplib.h')
 depends('./qubitverse/simulator/gates/gates.hh')
+depends('./qubitverse/simulator/gates/gates.cc')
 depends('./qubitverse/simulator/simulator/simulator.cc')
 depends('./qubitverse/simulator/lexer/lexer.hh')
 depends('./qubitverse/simulator/lexer/lexer.cc')
@@ -41,6 +42,7 @@ depends('./qubitverse/simulator/parser/ast.hh')
     1 = './qubitverse/simulator/simulator/simulator.cc'
     2 = './qubitverse/simulator/lexer/lexer.cc'
     3 = './qubitverse/simulator/parser/parser.cc'
+    4 = './qubitverse/simulator/gates/gates.cc'
 
 [output]:
     if os == 'windows'
