@@ -347,9 +347,14 @@ const SWAPGate = ({
 const QuantumCircuit = () => {
     // Number of Qubits
     const [numQubits, setNumQubits] = useState(() => {
-        const input = prompt("Enter number of Qubits:");
-        const parsedValue = parseInt(input, 10);
-        return !isNaN(parsedValue) && parsedValue > 0 ? parsedValue : 0;
+        while (true) {
+            const input = prompt("Enter number of Qubits:");
+            const parsedValue = parseInt(input, 10);
+            if (!isNaN(parsedValue) && parsedValue > 0 && isFinite(parsedValue))
+                return parsedValue;
+            else
+                alert("There must be atleast 1 qubit in a quantum system");
+        }
     });
     // Result or Log Data from the Backend
     const [resultData, setResultData] = useState(null);
@@ -369,10 +374,6 @@ const QuantumCircuit = () => {
     const [czGates, setCzGates] = useState([]); // { x, control, target }
     // SWAP gates
     const [swapGates, setSwapGates] = useState([]); // { x, qubit1, qubit2 }
-
-    // For Bloch sphere popup
-    const [selectedQubit, setSelectedQubit] = useState(null);
-    const [modalOpen, setModalOpen] = useState(false);
 
     // For rotation/phase gates
     const [rotationModalOpen, setRotationModalOpen] = useState(false);
@@ -467,16 +468,16 @@ const QuantumCircuit = () => {
     // =======================
     // QUBIT LINE COMPONENT
     // =======================
-    const QubitLine = ({ y, label, onClickQubit }) => (
+    const QubitLine = ({ y, label }) => (
         <Group>
             <Text
                 text={label}
+                fontStyle="1000"
                 fontSize={20}
                 x={10}
                 y={y - 20}
-                fill="blue"
+                fill="#4169E1"
                 listening={true}
-                onClick={onClickQubit}
             />
             <Line
                 points={[50, y, window.innerWidth - 300, y]}
@@ -610,19 +611,6 @@ const QuantumCircuit = () => {
     };
     const handleDeleteSwap = (index) => {
         setSwapGates((prev) => prev.filter((_, i) => i !== index));
-    };
-
-    // =======================
-    // MODALS & POPUPS
-    // =======================
-    // Bloch sphere popup
-    const openModalForQubit = (qid) => {
-        setSelectedQubit(qid);
-        setModalOpen(true);
-    };
-    const closeModal = () => {
-        setSelectedQubit(null);
-        setModalOpen(false);
     };
 
     // =======================
@@ -774,7 +762,7 @@ const QuantumCircuit = () => {
             <div className="p-4">
                 {/* Tab Buttons */}
                 <div className="sticky top-0 left-[220px] right-0 bg-white z-50 flex space-x-4 border-b mb-4 py-2 px-4">
-                    {["Circuit", "Result", "Probability", "Log"].map((tab) => (
+                    {["Circuit", "Result", "Probability", "Bloch Sphere", "Log"].map((tab) => (
                         <button
                             key={tab}
                             className={`p-2 transition-all ${activeTab === tab
@@ -938,7 +926,6 @@ const QuantumCircuit = () => {
                                             key={i}
                                             y={(i + 1) * qubitSpacing}
                                             label={`Q${i}`}
-                                            onClickQubit={() => openModalForQubit(i)}
                                         />
                                     ))}
                                     {/* Render single-qubit gates */}
@@ -1022,48 +1009,12 @@ const QuantumCircuit = () => {
                             placeholder="Log Data from Backend"
                             value={resultData}
                         ></textarea>
-                    ) : (null)}
+                    ) : activeTab === "Bloch Sphere" ? (
+                        <dd></dd>
+                    )
+                        : (null)}
                 </div>
             </div>
-
-            {/* BLOCH SPHERE MODAL */}
-            {modalOpen && (
-                <div
-                    onClick={closeModal}
-                    style={{
-                        position: "fixed",
-                        top: 0,
-                        left: 0,
-                        width: "100vw",
-                        height: "100vh",
-                        background: "rgba(0, 0, 0, 0.5)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                    }}
-                >
-                    <div
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                            background: "white",
-                            padding: "20px",
-                            borderRadius: "10px",
-                            textAlign: "center",
-                        }}
-                    >
-                        <h3>Bloch Sphere for Q{selectedQubit}</h3>
-                        <img
-                            src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Bloch_sphere.svg/512px-Bloch_sphere.svg.png"
-                            alt="Bloch Sphere"
-                            style={{ width: "300px", height: "300px" }}
-                        />
-                        <br />
-                        <button onClick={closeModal} style={{ marginTop: "10px" }}>
-                            Close
-                        </button>
-                    </div>
-                </div>
-            )}
 
             {/* ROTATION/PHASE GATE MODAL */}
             {rotationModalOpen && (
