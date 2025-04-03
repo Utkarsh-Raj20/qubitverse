@@ -20,7 +20,7 @@ export default function InteractiveBarGraph({ probs }) {
                     <Tooltip
                         contentStyle={{ background: "#F8F1E7", fontWeight: "bold", borderRadius: "5px", padding: "10px", boxShadow: "0px 0px 10px rgba(0,0,0,0.2)" }}
                         labelFormatter={(name) => [`${name}: |${Number(name).toString(2)}〉`]}
-                        formatter={(value) => [`Probability: ${value}`]}
+                        formatter={(value) => [`Probability: ${value} (${value * 100.00}%)`]}
                     />
                     <Bar
                         cursor="pointer"
