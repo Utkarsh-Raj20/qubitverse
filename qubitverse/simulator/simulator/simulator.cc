@@ -89,25 +89,25 @@ std::string get_quantum_info(const std::size_t &nQ, const std::vector<std::uniqu
             }
             else if (casted->M_gate == "P")
             {
-                std::printf("Applying General Phase Shift Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
+                std::printf("Applying General Phase Shift Gate by %lf rad on Qubit %zu:\n", deg_to_rad(casted->M_theta), casted->M_qubit);
                 qsys.apply_phase_general_shift(deg_to_rad(casted->M_theta), casted->M_qubit);
                 set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "Rx")
             {
-                std::printf("Applying Rotation-X Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
+                std::printf("Applying Rotation-X Gate by %lf rad on Qubit %zu:\n", deg_to_rad(casted->M_theta), casted->M_qubit);
                 qsys.apply_rotation_x(deg_to_rad(casted->M_theta), casted->M_qubit);
                 set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "Ry")
             {
-                std::printf("Applying Rotation-Y Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
+                std::printf("Applying Rotation-Y Gate by %lf rad on Qubit %zu:\n", deg_to_rad(casted->M_theta), casted->M_qubit);
                 qsys.apply_rotation_y(deg_to_rad(casted->M_theta), casted->M_qubit);
                 set_quantum_states(qsys, ret_val, casted->M_gate);
             }
             else if (casted->M_gate == "Rz")
             {
-                std::printf("Applying Rotation-Z Gate by %lf rad on Qubit %zu:\n", casted->M_qubit, deg_to_rad(casted->M_theta), casted->M_qubit);
+                std::printf("Applying Rotation-Z Gate by %lf rad on Qubit %zu:\n", deg_to_rad(casted->M_theta), casted->M_qubit);
                 qsys.apply_rotation_z(deg_to_rad(casted->M_theta), casted->M_qubit);
                 set_quantum_states(qsys, ret_val, casted->M_gate);
             }
