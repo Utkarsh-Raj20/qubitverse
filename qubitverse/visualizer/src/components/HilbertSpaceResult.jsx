@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { DataSet, Network } from "vis-network/standalone";
+import { Network } from "vis-network/standalone";
 
 function HilbertSpaceResult({ nodes, edges, measuredValue }) {
     const containerRef = useRef(null);
@@ -14,7 +14,7 @@ function HilbertSpaceResult({ nodes, edges, measuredValue }) {
                     shape: "box",
                     margin: 10,
                     font: { face: "monospace", size: 14 },
-                    widthConstraint: {maximum: 1000},
+                    widthConstraint: { maximum: 1000 },
                 },
                 edges: {
                     arrows: "to",
