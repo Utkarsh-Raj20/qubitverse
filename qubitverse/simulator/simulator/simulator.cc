@@ -5,7 +5,6 @@
  */
 
 #include <iostream>
-#include <bitset>
 #include "../gates/gates.hh"
 #include "../lexer/lexer.hh"
 #include "../parser/parser.hh"
