@@ -17,7 +17,7 @@ const Navbar = () => {
                 backgroundColor: "rgba(50, 61, 76, 0.5)",
                 borderRadius: "5px",
                 color: "#fff",
-                padding: "6px 6px 6px 6px",
+                padding: "10px 10px 10px 10px",
                 cursor: "pointer"
             }}>QubitVerse</div></h1>
             <div className="flex items-center space-x-5">
