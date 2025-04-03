@@ -487,23 +487,23 @@ const QuantumCircuit = () => {
     );
 
     // =======================
-    // Helper: snap single-qubit gates to a line
-    // =======================
-    const snapY = (pointerY) => {
-        const desiredCenter = Math.round(pointerY / qubitSpacing) * qubitSpacing;
-        const clampedCenter = Math.max(
-            qubitSpacing,
-            Math.min(desiredCenter, numQubits * qubitSpacing)
-        );
-        return clampedCenter - gateSize / 2;
-    };
-
-    // =======================
     // DRAG & DROP LOGIC
     // =======================
     useEffect(() => {
         if (!stageRef.current) return;
         const container = stageRef.current.container();
+
+        // =======================
+        // Helper: snap single-qubit gates to a line
+        // =======================
+        const snapY = (pointerY) => {
+            const desiredCenter = Math.round(pointerY / qubitSpacing) * qubitSpacing;
+            const clampedCenter = Math.max(
+                qubitSpacing,
+                Math.min(desiredCenter, numQubits * qubitSpacing)
+            );
+            return clampedCenter - gateSize / 2;
+        };
 
         const handleDrop = (e) => {
             e.preventDefault();
@@ -756,6 +756,19 @@ const QuantumCircuit = () => {
         setSwapModalOpen(false);
     };
 
+    // =======================
+    // Add or Remove Qubits
+    const handleAddQubit = () => {
+        let q = numQubits + 1;
+        setNumQubits(q);
+    }
+
+    const handleDeleteQubit = () => {
+        let q = numQubits - 1;
+        setNumQubits(q);
+    }
+    // =======================
+
     return (
         <MathJaxContext>
             <div className="p-4">
@@ -790,6 +803,7 @@ const QuantumCircuit = () => {
                         borderRadius: "5px",
                         background: "white",
                         padding: "10px",
+                        marginTop: "60px",
                         zIndex: 10, // keep above the stage
                         transform: "translateY(-50%)",
                     }}
@@ -807,7 +821,6 @@ const QuantumCircuit = () => {
                             alignItems: "center",
                             justifyContent: "space-evenly",
                             marginBottom: "10px",
-                            background: "white",
                             overflowY: "auto",
                         }}
                     >
@@ -861,7 +874,9 @@ const QuantumCircuit = () => {
                         setProbData={setProbData}
                         setEdgesResultGraph={setEdgesResultGraph}
                         setVerticesResultGraph={setVerticesResultGraph}
-                        setMeasuredValue={setMeasuredValue} />
+                        setMeasuredValue={setMeasuredValue}
+                        funcAddQubits={handleAddQubit}
+                        funcRemoveQubits={handleDeleteQubit} />
                 </div>
 
                 {/* Right Content: depends on active tab */}

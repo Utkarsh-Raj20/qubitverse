@@ -71,7 +71,7 @@ function quantum_encode(cktData, feature) {
     return s;
 }
 
-export function SendToBackEnd_Calculate({ gates, cnotGates, czGates, swapGates, numQubits, setLog, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue }) {
+export function SendToBackEnd_Calculate({ gates, cnotGates, czGates, swapGates, numQubits, setLog, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue, funcAddQubits, funcRemoveQubits }) {
     const request_backend = async (dat) => {
         try {
             const response = await fetch('http://localhost:9080/api/endpoint', {
@@ -145,6 +145,26 @@ export function SendToBackEnd_Calculate({ gates, cnotGates, czGates, swapGates, 
                 onClick={sendMeasure}
             >
                 Measure
+            </Button>
+            <Button
+                variant="outline"
+                style={{
+                    width: "100%",
+                    padding: "10px",
+                }}
+                onClick={funcAddQubits}
+            >
+                Add Qubit
+            </Button>
+            <Button
+                variant="outline"
+                style={{
+                    width: "100%",
+                    padding: "10px",
+                }}
+                onClick={funcRemoveQubits}
+            >
+                Delete Qubit
             </Button>
         </div>
     );
