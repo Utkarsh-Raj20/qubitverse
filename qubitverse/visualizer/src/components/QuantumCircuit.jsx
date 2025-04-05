@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import InteractiveBarGraph from "./ProbGraph";
 import HilbertSpaceResult from "./HilbertSpaceResult";
 import { DataSet } from "vis-network/standalone";
+import QubitBlochSphere from "./BlochSphere";
 
 // =======================
 // CONFIG CONSTANTS
@@ -392,7 +393,7 @@ const MeasureNthComponent = ({
             <Shape
                 sceneFunc={(context, shape) => {
                     context.beginPath();
-                    context.arc(gateSize / 2, gateSize / 2 +5, gateSize / 2.5, Math.PI, 0, false);
+                    context.arc(gateSize / 2, gateSize / 2 + 5, gateSize / 2.5, Math.PI, 0, false);
                     context.strokeShape(shape);
                 }}
                 stroke="red"
@@ -423,16 +424,7 @@ const MeasureNthComponent = ({
 // =======================
 // MAIN QUANTUM CIRCUIT COMPONENT
 // =======================
-const QuantumCircuit = () => {
-    // Number of Qubits
-    const [numQubits, setNumQubits] = useState(() => {
-        const input = prompt("Enter number of Qubits:");
-        const parsedValue = parseInt(input, 10);
-        if (!isNaN(parsedValue) && parsedValue > 0 && isFinite(parsedValue))
-            return parsedValue;
-        else
-            alert("There must be atleast 1 qubit in a quantum system");
-    });
+const QuantumCircuit = ({ numQubits, setNumQubits }) => {
     // Result or Log Data from the Backend
     const [resultData, setResultData] = useState(null);
     // Probs Data for BarGraph
@@ -1135,7 +1127,9 @@ const QuantumCircuit = () => {
                             value={resultData}
                         ></textarea>
                     ) : activeTab === "Bloch Sphere" ? (
-                        <dd></dd>
+                        <QubitBlochSphere
+                            qubitState={[0.7, 0.70]}
+                        />
                     )
                         : (null)}
                 </div>
