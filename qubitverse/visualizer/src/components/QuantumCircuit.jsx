@@ -931,8 +931,8 @@ const QuantumCircuit = () => {
                                 <div
                                     key={index}
                                     style={{
-                                        width: gateSize,
-                                        height: gateSize,
+                                        width: gateSize - 1,
+                                        height: gateSize - 1,
                                         userSelect: "none",
                                         display: "flex",
                                         alignItems: "center",
