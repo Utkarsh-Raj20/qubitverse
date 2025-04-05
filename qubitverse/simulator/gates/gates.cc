@@ -350,6 +350,58 @@ namespace simulator
         return res;
     }
 
+    std::size_t qubit::measure_nth_qubit(const std::size_t &nth)
+    {
+        double prob0 = 0.0, prob1 = 0.0;
+
+        for (int i = 0; i < this->M_len; i++)
+        {
+            int bit = (i >> nth) & 1;
+            double ampSquared = std::norm(this->M_qubits[i]); // norm = |amplitude|^2
+            if (bit == 0)
+                prob0 += ampSquared;
+            else
+                prob1 += ampSquared;
+        }
+
+        double totalProb = prob0 + prob1;
+        if (std::abs(totalProb - 1.0) > 1.0E-6)
+        {
+            std::fprintf(stderr, "warning: state is not normalized, total probability = %lf\n", totalProb);
+        }
+
+        // Randomly choose measurement outcome based on the computed probabilities.
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> dis(0.0, 1.0);
+        double rnd = dis(gen);
+
+        int outcome = (rnd < prob0) ? 0 : 1;
+
+        // Collapse the state vector: set amplitudes incompatible with the outcome to zero.
+        double normFactor = (outcome == 0) ? std::sqrt(prob0) : std::sqrt(prob1);
+        if (normFactor == 0)
+        {
+            std::fprintf(stderr, "error: measured probability is zero.");
+            return -1;
+        }
+
+        for (int i = 0; i < this->M_len; i++)
+        {
+            int bit = (i >> nth) & 1;
+            if (bit != outcome)
+            {
+                this->M_qubits[i] = 0;
+            }
+            else
+            {
+                this->M_qubits[i] /= normFactor; // renormalize amplitude
+            }
+        }
+
+        return outcome;
+    }
+
     qubit &qubit::operator=(const qubit &q)
     {
         if (this != &q)

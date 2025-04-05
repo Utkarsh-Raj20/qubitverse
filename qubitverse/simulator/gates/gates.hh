@@ -91,6 +91,7 @@ namespace simulator
         void get_nth_qubit(complex (&__s)[2], const std::size_t &nth) const;
         double *&compute_probabilities(double *&probs) const;
         std::size_t measure();
+        std::size_t measure_nth_qubit(const std::size_t &nth);
         qubit &operator=(const qubit &q);
         qubit &operator=(qubit &&q) noexcept(true);
         ~qubit();
