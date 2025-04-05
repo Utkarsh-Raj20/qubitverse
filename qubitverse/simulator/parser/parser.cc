@@ -85,6 +85,19 @@ namespace simulator
                     if (toks[i].M_type == token_type::SEP)
                         i++;
                 }
+                else if (toks[i].M_val == "measurenth")
+                {
+                    i++; // skips measurenth
+                    std::size_t q;
+
+                    i += 2; // skips qubit
+                    q = std::stoul(toks[i++].M_val);
+                    i += 3; // skips position and its value
+
+                    this->M_gatelist.emplace_back(new ast_measure_nth_node(q));
+                    if (toks[i].M_type == token_type::SEP)
+                        i++;
+                }
                 else
                     return false;
             }
