@@ -16,7 +16,8 @@ namespace simulator
         SINGLE_GATE,
         CNOT_GATE,
         CZ_GATE,
-        SWAP_GATE
+        SWAP_GATE,
+        MEASURE_NTH
     };
 
     class ast_node
@@ -33,7 +34,7 @@ namespace simulator
         std::size_t M_qubit;
         double M_theta;
 
-        ast_single_gate_node(std::string &&_g, std::size_t _q, double _t)
+        ast_single_gate_node(std::string &&_g, const std::size_t &_q, const double &_t)
             : M_gate(std::move(_g)), M_qubit(_q), M_theta(_t) {}
 
         gate_type get_gate_type() const override { return gate_type::SINGLE_GATE; }
@@ -45,7 +46,7 @@ namespace simulator
         std::size_t M_control;
         std::size_t M_target;
 
-        ast_cnot_gate_node(std::size_t ctrl, std::size_t tar)
+        ast_cnot_gate_node(const std::size_t &ctrl, const std::size_t &tar)
             : M_control(ctrl), M_target(tar) {}
 
         gate_type get_gate_type() const override { return gate_type::CNOT_GATE; }
@@ -57,7 +58,7 @@ namespace simulator
         std::size_t M_control;
         std::size_t M_target;
 
-        ast_cz_gate_node(std::size_t ctrl, std::size_t tar)
+        ast_cz_gate_node(const std::size_t &ctrl, const std::size_t &tar)
             : M_control(ctrl), M_target(tar) {}
 
         gate_type get_gate_type() const override { return gate_type::CZ_GATE; }
@@ -69,10 +70,20 @@ namespace simulator
         std::size_t M_qubit1;
         std::size_t M_qubit2;
 
-        ast_swap_gate_node(std::size_t q1, std::size_t q2)
+        ast_swap_gate_node(const std::size_t &q1, const std::size_t &q2)
             : M_qubit1(q1), M_qubit2(q2) {}
 
         gate_type get_gate_type() const override { return gate_type::SWAP_GATE; }
+    };
+
+    class ast_measure_nth_node : public ast_node
+    {
+      public:
+        std::size_t M_qubit;
+
+        ast_measure_nth_node(const std::size_t &q) : M_qubit(q) {}
+
+        gate_type get_gate_type() const override { return gate_type::MEASURE_NTH; }
     };
 }
 
