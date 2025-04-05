@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Stage, Layer, Line, Rect, Text, Group, Circle } from "react-konva";
+import { Stage, Layer, Line, Rect, Text, Group, Circle, Shape } from "react-konva";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import SendToBackEnd_Calculate from "./SendToBackEnd";
 import { Button } from "./ui/button";
@@ -33,6 +33,7 @@ const gatesList = [
     "CNOT",
     "CZ",
     "SWAP",
+    "M"
 ];
 
 // =======================
@@ -103,6 +104,11 @@ const gateTooltips = {
         latex:
             "$$SWAP = \\begin{pmatrix} 1 & 0 & 0 & 0 \\\\ 0 & 0 & 1 & 0 \\\\ 0 & 1 & 0 & 0 \\\\ 0 & 0 & 0 & 1 \\end{pmatrix}$$",
     },
+    M: {
+        desc: "Measure",
+        latex:
+            "$$\\text{Measure }n^{\\text{th}}\\text{ Qubit}$$"
+    }
 };
 
 // Helper to clamp a value between min and max
@@ -342,19 +348,90 @@ const SWAPGate = ({
 };
 
 // =======================
+// Measure Nth COMPONENT
+// =======================
+const MeasureNthComponent = ({
+    x,
+    y,
+    draggable,
+    onDragEnd,
+    fixedY,
+    onRightClick,
+    order
+}) => {
+    return (
+        <Group
+            x={x}
+            y={y}
+            draggable={draggable}
+            dragBoundFunc={
+                fixedY !== undefined
+                    ? (pos) => ({
+                        x: clamp(pos.x, canvasMinX, canvasMaxX),
+                        y: fixedY,
+                    })
+                    : undefined
+            }
+            onDragEnd={onDragEnd}
+            onContextMenu={(e) => {
+                e.evt.preventDefault();
+                onRightClick();
+            }}
+        >
+            {/* Rectangle Border */}
+            <Rect
+                width={gateSize}
+                height={gateSize}
+                fill="white"
+                stroke="black"
+                strokeWidth={2}
+                cornerRadius={5}
+            />
+
+            {/* Semicircle */}
+            <Shape
+                sceneFunc={(context, shape) => {
+                    context.beginPath();
+                    context.arc(gateSize / 2, gateSize / 2 +5, gateSize / 2.5, Math.PI, 0, false);
+                    context.strokeShape(shape);
+                }}
+                stroke="red"
+                strokeWidth={2}
+            />
+
+            {/* Diagonal Line */}
+            <Line
+                points={[gateSize * 0.4, gateSize * 0.7, gateSize * 0.85, gateSize * 0.15]}
+                stroke="black"
+                strokeWidth={2}
+            />
+            {/* Small Circle */}
+            <Circle x={gateSize * 0.4} y={gateSize * 0.7} radius={3} fill="black" />
+            {order !== undefined && (
+                <Text
+                    text={String(order)}
+                    fontSize={12}
+                    fill="red"
+                    x={gateSize - 10}
+                    y={3}
+                />
+            )}
+        </Group>
+    );
+};
+
+// =======================
 // MAIN QUANTUM CIRCUIT COMPONENT
 // =======================
 const QuantumCircuit = () => {
     // Number of Qubits
     const [numQubits, setNumQubits] = useState(() => {
-        while (true) {
-            const input = prompt("Enter number of Qubits:");
-            const parsedValue = parseInt(input, 10);
-            if (!isNaN(parsedValue) && parsedValue > 0 && isFinite(parsedValue))
-                return parsedValue;
-            else
-                alert("There must be atleast 1 qubit in a quantum system");
-        }
+        const input = prompt("Enter number of Qubits:");
+        const parsedValue = parseInt(input, 10);
+        if (!isNaN(parsedValue) && parsedValue > 0 && isFinite(parsedValue))
+            return parsedValue;
+        else
+            alert("There must be atleast 1 qubit in a quantum system");
     });
     // Result or Log Data from the Backend
     const [resultData, setResultData] = useState(null);
@@ -374,6 +451,8 @@ const QuantumCircuit = () => {
     const [czGates, setCzGates] = useState([]); // { x, control, target }
     // SWAP gates
     const [swapGates, setSwapGates] = useState([]); // { x, qubit1, qubit2 }
+    // Measure Nth Qubit 
+    const [measureNthQubit, setMeasureNthQubit] = useState([]); // {x, y}
 
     // For rotation/phase gates
     const [rotationModalOpen, setRotationModalOpen] = useState(false);
@@ -443,12 +522,19 @@ const QuantumCircuit = () => {
         if (!combinedGroups[qid]) combinedGroups[qid] = [];
         combinedGroups[qid].push({ type: "swap", index: i, x: g.x });
     });
+    // Measure Nth Qubit
+    measureNthQubit.forEach((g, i) => {
+        const qid = Math.round((g.y + gateSize / 2) / qubitSpacing) - 1;
+        if (!combinedGroups[qid]) combinedGroups[qid] = [];
+        combinedGroups[qid].push({ type: "measure", index: i, x: g.x });
+    });
 
     const combinedOrders = {
         single: {},
         cnot: {},
         cz: {},
         swap: {},
+        measure: {}
     };
     Object.keys(combinedGroups).forEach((qid) => {
         combinedGroups[qid].sort((a, b) => a.x - b.x);
@@ -461,6 +547,8 @@ const QuantumCircuit = () => {
                 combinedOrders.cz[item.index] = orderIndex + 1;
             } else if (item.type === "swap") {
                 combinedOrders.swap[item.index] = orderIndex + 1;
+            } else if (item.type === "measure") {
+                combinedOrders.measure[item.index] = orderIndex + 1;
             }
         });
     });
@@ -530,6 +618,12 @@ const QuantumCircuit = () => {
                 setRotationY(snappedY);
                 setRotationType(gateType);
                 setRotationValue(45); // default value
+            } else if (gateType === "M") {
+                const snappedY = snapY(pointerY);
+                setMeasureNthQubit((prev) => [
+                    ...prev,
+                    { x: pointerX, y: snappedY, },
+                ]);
             } else {
                 // Single-qubit gate
                 const snappedY = snapY(pointerY);
@@ -566,6 +660,19 @@ const QuantumCircuit = () => {
         });
         setIsDragging(false);
     };
+
+    const handleMeasureDragEnd = (e, index) => {
+        const { x } = e.target.position();
+        setMeasureNthQubit((prev) => {
+            const newArr = [...prev];
+            newArr[index] = {
+                ...newArr[index],
+                x: clamp(x, canvasMinX, canvasMaxX),
+            };
+            return newArr;
+        });
+        setIsDragging(false);
+    }
 
     const handleCnotDragEnd = (e, index) => {
         const { x } = e.target.position();
@@ -612,6 +719,9 @@ const QuantumCircuit = () => {
     const handleDeleteSwap = (index) => {
         setSwapGates((prev) => prev.filter((_, i) => i !== index));
     };
+    const handleDeleteMeasure = (index) => {
+        setMeasureNthQubit((prev) => prev.filter((_, i) => i !== index));
+    }
 
     // =======================
     // TOOLTIP HANDLERS
@@ -857,6 +967,7 @@ const QuantumCircuit = () => {
                         cnotGates={cnotGates}
                         czGates={czGates}
                         swapGates={swapGates}
+                        measureNthQ={measureNthQubit}
                         numQubits={numQubits}
                         setLog={setResultData}
                         setProbData={setProbData}
@@ -984,6 +1095,20 @@ const QuantumCircuit = () => {
                                             onDragEnd={(e) => handleSwapDragEnd(e, i)}
                                             onRightClick={() => handleDeleteSwap(i)}
                                             order={combinedOrders.swap[i]}
+                                        />
+                                    ))}
+                                    {/* Render Measure Nth Component */}
+                                    {measureNthQubit.map((g, i) => (
+                                        <MeasureNthComponent
+                                            key={i}
+                                            x={g.x}
+                                            y={g.y}
+                                            fixedY={g.y}
+                                            draggable
+                                            onDragEnd={(e) => handleMeasureDragEnd(e, i)}
+                                            onRightClick={() => handleDeleteMeasure(i)}
+                                            onDragStart={handleDragStart}
+                                            order={combinedOrders.measure[i]}
                                         />
                                     ))}
                                 </Layer>
