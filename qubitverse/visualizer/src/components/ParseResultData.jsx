@@ -38,6 +38,18 @@ export const ParseResultData = ({ data, setProbData, setEdgesResultGraph, setVer
             i = newIndex - 1; // set i to the last processed index; the for-loop will then increment it
             j++;
         }
+        else if (lines[i] === "measureNth") {
+            const { values, newIndex } = ParseQubitData(lines, i + 1);
+            vertices.push({
+                id: j + 1,
+                label: "Measuring the Qubit",
+                originalLabel: "Measuring the Qubit",
+                expanded: false,
+                values: values
+            });
+            i = newIndex - 1; // set i to the last processed index; the for-loop will then increment it
+            j++;
+        }
         else if (lines[i] === "prob") {
             i++; // skip prob
             while (/^[ a-z]+$/i.test(lines[i]) === false && lines[i] !== "") {
