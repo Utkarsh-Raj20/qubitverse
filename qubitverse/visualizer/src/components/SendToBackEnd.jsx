@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import ParseResultData from "./ParseResultData";
 
 // This function extracts circuit data from the gates state
-function extractCircuitData(gates, cnotGates, czGates, swapGates, nQ) {
+function extractCircuitData(gates, cnotGates, czGates, swapGates, measureNthQ, nQ) {
     // Process single-qubit gates
     const processedGates = gates.map((gate) => {
         // Calculate which qubit this gate is on based on y position
@@ -46,8 +46,18 @@ function extractCircuitData(gates, cnotGates, czGates, swapGates, nQ) {
         };
     });
 
+    // Process Measurement
+    const measureNthQubits = measureNthQ.map((gate) => {
+        const qubitIndex = Math.round((gate.y + 20) / 50) - 1; // 20 is half of gateSize, 50 is qubitSpacing
+        return {
+            type: "measurenth",
+            qubit: qubitIndex,
+            position: gate.x,
+        }
+    });
+
     // Combine all gates and sort by position (x coordinate)
-    const allGates = [...processedGates, ...processedCnotGates, ...processedCZGates, ...processedSwapGates].sort(
+    const allGates = [...processedGates, ...processedCnotGates, ...processedCZGates, ...processedSwapGates, ...measureNthQubits].sort(
         (a, b) => a.position - b.position
     );
 
@@ -71,7 +81,7 @@ function quantum_encode(cktData, feature) {
     return s;
 }
 
-export function SendToBackEnd_Calculate({ gates, cnotGates, czGates, swapGates, numQubits, setLog, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue, funcAddQubits, funcRemoveQubits }) {
+export function SendToBackEnd_Calculate({ gates, cnotGates, czGates, swapGates, measureNthQ, numQubits, setLog, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue, funcAddQubits, funcRemoveQubits }) {
     const request_backend = async (dat) => {
         try {
             const response = await fetch('http://localhost:9080/api/endpoint', {
@@ -90,7 +100,7 @@ export function SendToBackEnd_Calculate({ gates, cnotGates, czGates, swapGates, 
 
     const sendCalculate = () => {
         request_backend(
-            quantum_encode(extractCircuitData(gates, cnotGates, czGates, swapGates, numQubits), "0")
+            quantum_encode(extractCircuitData(gates, cnotGates, czGates, swapGates, measureNthQ, numQubits), "0")
         ).then(responseText => { setLog(responseText); ParseResultData({ data: responseText, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue }) });
 
 
@@ -98,13 +108,13 @@ export function SendToBackEnd_Calculate({ gates, cnotGates, czGates, swapGates, 
 
     const sendProbability = () => {
         request_backend(
-            quantum_encode(extractCircuitData(gates, cnotGates, czGates, swapGates, numQubits), "1")
+            quantum_encode(extractCircuitData(gates, cnotGates, czGates, swapGates, measureNthQ, numQubits), "1")
         ).then(responseText => { setLog(responseText); ParseResultData({ data: responseText, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue }) });
     };
 
     const sendMeasure = () => {
         request_backend(
-            quantum_encode(extractCircuitData(gates, cnotGates, czGates, swapGates, numQubits), "2")
+            quantum_encode(extractCircuitData(gates, cnotGates, czGates, swapGates, measureNthQ, numQubits), "2")
         ).then(responseText => { setLog(responseText); ParseResultData({ data: responseText, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue }) });
     };
 
