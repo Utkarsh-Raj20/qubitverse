@@ -133,6 +133,13 @@ std::string get_quantum_info(const std::size_t &nQ, const std::vector<std::uniqu
             qsys.apply_swap(casted->M_qubit1, casted->M_qubit2);
             set_quantum_states(qsys, ret_val, "swap");
         }
+        else if(i->get_gate_type() == simulator::gate_type::MEASURE_NTH)
+        {
+            auto *casted = dynamic_cast<simulator::ast_measure_nth_node *>(i.get());
+            std::printf("Measuring the Qubit %zu:\n", casted->M_qubit);
+            qsys.measure_nth_qubit(casted->M_qubit);
+            set_quantum_states(qsys, ret_val, "measureNth");
+        }
     }
 
     if (operation == '0')
@@ -165,7 +172,7 @@ std::string get_quantum_info(const std::size_t &nQ, const std::vector<std::uniqu
             ss << i << "=" << vec_prob[i] << "\n";
         }
 
-        std::puts("Measuring the state:");
+        std::puts("Measuring the states:");
         ss << "measure\n"
            << qsys.measure() << "\n";
 
