@@ -13,13 +13,22 @@ const Navbar = () => {
 
     return (
         <nav className="flex items-center justify-between px-6 py-4 bg-gray-100 dark:bg-gray-800 shadow">
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white" style={{ userSelect: "none" }}><div style={{
-                backgroundColor: "rgba(50, 61, 76, 0.5)",
-                borderRadius: "5px",
-                color: "#fff",
-                padding: "10px 10px 10px 10px",
-                cursor: "pointer"
-            }}>QubitVerse</div></h1>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white" style={{ userSelect: "none" }}>
+                <div style={{
+                    backgroundColor: "rgba(50, 61, 76, 0.2)",
+                    borderRadius: "8px",
+                    display: "flex",
+                    color: "#fff",
+                    padding: "10px 10px 10px 10px",
+                    cursor: "pointer",
+                    float: "left",
+                    justifyContent: "center",
+                    gap: "5px",
+                    alignItems: "center"
+                }}>
+                    <img src="/icon.png" width={64} height={64}></img>
+                    <code>QubitVerse</code>
+                </div></h1>
             <div className="flex items-center space-x-5">
                 <button
                     onClick={() => setDarkTheme((prev) => !prev)}
