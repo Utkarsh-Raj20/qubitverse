@@ -4,8 +4,12 @@ import { Network } from "vis-network/standalone";
 function HilbertSpaceResult({ nodes, edges, measuredValue }) {
     const containerRef = useRef(null);
     const networkRef = useRef(null);
-    const [network, setNetwork] = useState(null);
-    const [graphData, setGraphData] = useState({ nodes, edges });
+    // Create a ref to store the nodes dataset
+    const nodesRef = useRef(nodes);
+
+    useEffect(() => {
+        nodesRef.current = nodes;
+    }, [nodes]);
 
     useEffect(() => {
         if (containerRef.current && !networkRef.current) {
@@ -33,27 +37,28 @@ function HilbertSpaceResult({ nodes, edges, measuredValue }) {
                     improvedLayout: true,
                     hierarchical: {
                         enabled: false,
-                        direction: "LR", // "UD" = Top to Bottom, "LR" = Left to Right
+                        direction: "UD",
                         sortMethod: "directed",
                     },
+
                 },
             };
 
-            networkRef.current = new Network(containerRef.current, graphData, options);
+            networkRef.current = new Network(containerRef.current, { nodes, edges }, options);
 
             // When a node is clicked, toggle its expanded state.
             networkRef.current.on("click", (params) => {
                 if (params.nodes.length > 0) {
                     const nodeId = params.nodes[0];
-                    const node = nodes.get(nodeId);
+                    const node = nodesRef.current.get(nodeId);
                     if (node) {
                         if (!node.expanded) {
                             const tableText = node.values
                                 .map((row) => `${row.qubit}: ${row.value}`)
                                 .join("\n");
-                            nodes.update({ id: nodeId, label: tableText, expanded: true });
+                            nodesRef.current.update({ id: nodeId, label: tableText, expanded: true });
                         } else {
-                            nodes.update({
+                            nodesRef.current.update({
                                 id: nodeId,
                                 label: node.originalLabel,
                                 expanded: false,
@@ -62,8 +67,12 @@ function HilbertSpaceResult({ nodes, edges, measuredValue }) {
                     }
                 }
             });
+        }
+    }, [nodes, edges]);
 
-            setNetwork(networkRef.current);
+    useEffect(() => {
+        if (networkRef.current) {
+            networkRef.current.setData({ nodes, edges });
         }
     }, [nodes, edges]);
 
