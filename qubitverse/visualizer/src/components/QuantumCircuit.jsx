@@ -568,23 +568,24 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
     );
 
     // =======================
+    // Helper: snap single-qubit gates to a line
+    // =======================
+    const snapY = (pointerY) => {
+        const desiredCenter = Math.round(pointerY / qubitSpacing) * qubitSpacing;
+        const clampedCenter = Math.max(
+            qubitSpacing,
+            Math.min(desiredCenter, numQubits * qubitSpacing)
+        );
+        return clampedCenter - gateSize / 2;
+    };
+
+    // =======================
     // DRAG & DROP LOGIC
     // =======================
+
     useEffect(() => {
         if (!stageRef.current) return;
         const container = stageRef.current.container();
-
-        // =======================
-        // Helper: snap single-qubit gates to a line
-        // =======================
-        const snapY = (pointerY) => {
-            const desiredCenter = Math.round(pointerY / qubitSpacing) * qubitSpacing;
-            const clampedCenter = Math.max(
-                qubitSpacing,
-                Math.min(desiredCenter, numQubits * qubitSpacing)
-            );
-            return clampedCenter - gateSize / 2;
-        };
 
         const handleDrop = (e) => {
             e.preventDefault();
@@ -635,7 +636,7 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
             container.removeEventListener("drop", handleDrop);
             container.removeEventListener("dragover", handleDragOver);
         };
-    }, [stageRef.current]);
+    }, [stageRef.current, numQubits]);
 
     // =======================
     // DRAG END HANDLERS
@@ -848,16 +849,42 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
 
     // =======================
     // Add or Remove Qubits
+    // =======================
     const handleAddQubit = () => {
         let q = numQubits + 1;
         setNumQubits(q);
     }
 
     const handleDeleteQubit = () => {
-        let q = numQubits - 1;
-        setNumQubits(q);
+        const newNumQubits = numQubits - 1;
+
+        setGates(prevGates =>
+            prevGates.filter(g => {
+                const gateQubit = Math.round((g.y + gateSize / 2) / qubitSpacing) - 1;
+                return gateQubit < newNumQubits;
+            })
+        );
+
+        setMeasureNthQubit(prevMeasures =>
+            prevMeasures.filter(g => {
+                const gateQubit = Math.round((g.y + gateSize / 2) / qubitSpacing) - 1;
+                return gateQubit < newNumQubits;
+            })
+        );
+
+        setCnotGates(prevCnot =>
+            prevCnot.filter(g => g.control < newNumQubits && g.target < newNumQubits)
+        );
+        setCzGates(prevCz =>
+            prevCz.filter(g => g.control < newNumQubits && g.target < newNumQubits)
+        );
+
+        setSwapGates(prevSwap =>
+            prevSwap.filter(g => g.qubit1 < newNumQubits && g.qubit2 < newNumQubits)
+        );
+
+        setNumQubits(newNumQubits);
     }
-    // =======================
 
     return (
         <MathJaxContext>
