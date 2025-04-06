@@ -951,6 +951,10 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
                             if (numQubits < 2 && ["CNOT", "CZ", "SWAP"].includes(gate)) {
                                 return null;
                             }
+
+                            const isActive = activeTab === "Circuit";
+                            const defaultBackground = isActive ? "white" : "#eee";
+
                             return (
                                 <div
                                     key={index}
@@ -963,21 +967,31 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
                                         justifyContent: "center",
                                         border: "2px solid black",
                                         borderRadius: "5px",
-                                        cursor: "grab",
-                                        background: "white",
+                                        cursor: isActive ? "grab" : "not-allowed",
+                                        background: defaultBackground,
                                         fontFamily: "Fira Code, monospace",
                                         transition: "background-color 0.2s ease",
                                         margin: "5px",
+                                        opacity: isActive ? 1 : 0.5,
+                                        pointerEvents: isActive ? "auto" : "none", // prevent interaction when locked
                                     }}
-                                    draggable
-                                    onDragStart={(e) => e.dataTransfer.setData("text/plain", gate)}
-                                    onMouseEnter={(e) => handleTooltipEnter(e, gate)}
+                                    draggable={isActive}
+                                    onDragStart={(e) => {
+                                        if (isActive) {
+                                            e.dataTransfer.setData("text/plain", gate);
+                                        }
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (isActive) handleTooltipEnter(e, gate);
+                                    }}
                                     onMouseMove={(e) => {
-                                        e.currentTarget.style.background = "oklch(80.9% 0.105 251.813)";
+                                        if (isActive) {
+                                            e.currentTarget.style.background = "oklch(80.9% 0.105 251.813)";
+                                        }
                                     }}
                                     onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = "white";
-                                        handleTooltipLeave(e);
+                                        e.currentTarget.style.background = defaultBackground;
+                                        if (isActive) handleTooltipLeave(e);
                                     }}
                                 >
                                     {gate}
