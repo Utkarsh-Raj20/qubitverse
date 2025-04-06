@@ -858,6 +858,11 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
     const handleDeleteQubit = () => {
         const newNumQubits = numQubits - 1;
 
+        if (newNumQubits < 1) {
+            console.error("At least 1 qubit");
+            return;
+        }
+
         setGates(prevGates =>
             prevGates.filter(g => {
                 const gateQubit = Math.round((g.y + gateSize / 2) / qubitSpacing) - 1;
@@ -968,7 +973,7 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
                                     onDragStart={(e) => e.dataTransfer.setData("text/plain", gate)}
                                     onMouseEnter={(e) => handleTooltipEnter(e, gate)}
                                     onMouseMove={(e) => {
-                                        e.currentTarget.style.background = "#D0E8FF";
+                                        e.currentTarget.style.background = "oklch(80.9% 0.105 251.813)";
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.background = "white";
