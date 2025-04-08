@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 
-export default function InteractiveBarGraph({ probs }) {
+export default function ProbGraph({ probs }) {
     const [activeIndex, setActiveIndex] = useState(null);
 
     return (
