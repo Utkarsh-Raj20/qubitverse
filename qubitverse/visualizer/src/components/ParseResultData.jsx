@@ -21,7 +21,7 @@ const ParseProbData = (lines, i) => {
     return { name: tup[0], value: Number(tup[1]) };
 }
 
-export const ParseResultData = ({ data, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue }) => {
+export const ParseResultData = ({ data, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue, setMeasurementHist }) => {
     var vertices = [], edges = [], measured = NaN, prob = [], isMeasureSystem = false;
     const lines = data.split('\n');
 
@@ -108,6 +108,7 @@ export const ParseResultData = ({ data, setProbData, setEdgesResultGraph, setVer
     setEdgesResultGraph(edges);
     setVerticesResultGraph(vertices);
     setMeasuredValue(measured);
+    setMeasurementHist(prev => [...prev, measured]);
 };
 
 export default ParseResultData;
