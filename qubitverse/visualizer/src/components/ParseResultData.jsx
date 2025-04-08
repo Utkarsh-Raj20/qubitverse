@@ -98,6 +98,8 @@ export const ParseResultData = ({ data, setProbData, setEdgesResultGraph, setVer
             expanded: false,
             values: measuredValueVertex
         });
+
+        setMeasurementHist(prev => [...prev, measured]);
     }
 
     for (let i = 0; i < vertices.length - 1; i++) {
@@ -108,7 +110,6 @@ export const ParseResultData = ({ data, setProbData, setEdgesResultGraph, setVer
     setEdgesResultGraph(edges);
     setVerticesResultGraph(vertices);
     setMeasuredValue(measured);
-    setMeasurementHist(prev => [...prev, measured]);
 };
 
 export default ParseResultData;
