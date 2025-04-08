@@ -3,10 +3,10 @@ import { Stage, Layer, Line, Rect, Text, Group, Circle, Shape } from "react-konv
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import SendToBackEnd_Calculate from "./SendToBackEnd";
 import { Button } from "./ui/button";
-import InteractiveBarGraph from "./ProbGraph";
+import ProbGraph from "./ProbGraph";
 import HilbertSpaceResult from "./HilbertSpaceResult";
 import { DataSet } from "vis-network/standalone";
-import QubitBlochSphere from "./BlochSphere";
+import MeasurementChart from "./MeasurementChart";
 
 // =======================
 // CONFIG CONSTANTS
@@ -435,6 +435,8 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
     const [verticesResultGraph, setVerticesResultGraph] = useState(null);
     // Result Measurement
     const [measuredValue, setMeasuredValue] = useState(NaN);
+    // Measurement History
+    const [measurementHist, setMeasurementHist] = useState([]);
     // Single-qubit gates
     const [gates, setGates] = useState([]); // { x, y, text, params? }
     // CNOT gates
@@ -896,7 +898,7 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
             <div className="p-4">
                 {/* Tab Buttons */}
                 <div className="sticky top-0 left-[220px] right-0 bg-white z-50 flex space-x-4 border-b mb-4 py-2 px-4">
-                    {["Circuit", "Result", "Probability", "Bloch Sphere", "Log"].map((tab) => (
+                    {["Circuit", "Result", "Measurement", "Probability", "Log"].map((tab) => (
                         <button
                             key={tab}
                             className={`p-2 transition-all ${activeTab === tab
@@ -1012,6 +1014,7 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
                         setEdgesResultGraph={setEdgesResultGraph}
                         setVerticesResultGraph={setVerticesResultGraph}
                         setMeasuredValue={setMeasuredValue}
+                        setMeasurementHist={setMeasurementHist}
                         funcAddQubits={handleAddQubit}
                         funcRemoveQubits={handleDeleteQubit} />
                 </div>
@@ -1154,9 +1157,11 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
                         </>
                     ) : activeTab === "Result" ? (
                         <HilbertSpaceResult nodes={new DataSet(verticesResultGraph)} edges={new DataSet(edgesResultGraph)} measuredValue={measuredValue} />
+                    ) : activeTab === "Measurement" ? (
+                        <MeasurementChart hist={measurementHist} />
                     ) : activeTab === "Probability" ? (
                         // an interactive graph
-                        <InteractiveBarGraph probs={probData} />
+                        <ProbGraph probs={probData} />
                     ) : activeTab === "Log" ? (
                         <textarea
                             style={{
@@ -1172,12 +1177,7 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
                             placeholder="Log Data from Backend"
                             value={resultData}
                         ></textarea>
-                    ) : activeTab === "Bloch Sphere" ? (
-                        <QubitBlochSphere
-                            qubitState={[0.7, 0.70]}
-                        />
-                    )
-                        : (null)}
+                    ) : (null)}
                 </div>
             </div>
 
