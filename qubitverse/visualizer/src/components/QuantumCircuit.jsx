@@ -447,6 +447,8 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
     const [swapGates, setSwapGates] = useState([]); // { x, qubit1, qubit2 }
     // Measure Nth Qubit 
     const [measureNthQubit, setMeasureNthQubit] = useState([]); // {x, y}
+    // Error to show when delete Qubit is clicked and numQubits goes less than 1
+    const [delQubError, setDelQubError] = useState(false);
 
     // For rotation/phase gates
     const [rotationModalOpen, setRotationModalOpen] = useState(false);
@@ -855,13 +857,14 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
     const handleAddQubit = () => {
         let q = numQubits + 1;
         setNumQubits(q);
+        setMeasurementHist([]);
     }
 
     const handleDeleteQubit = () => {
         const newNumQubits = numQubits - 1;
 
         if (newNumQubits < 1) {
-            console.error("At least 1 qubit");
+            setDelQubError(true);
             return;
         }
 
@@ -891,6 +894,8 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
         );
 
         setNumQubits(newNumQubits);
+
+        setMeasurementHist([]);
     }
 
     return (
@@ -1181,10 +1186,10 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
                 </div>
             </div>
 
-            {/* ROTATION/PHASE GATE MODAL */}
-            {rotationModalOpen && (
+            {/* Error Modal */}
+            {delQubError && (
                 <div
-                    onClick={handleRotationCancel}
+                    onClick={() => { setDelQubError(false); }}
                     style={{
                         position: "fixed",
                         top: 0,
@@ -1195,7 +1200,7 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        zIndex: 1001,
+                        userSelect: "none"
                     }}
                 >
                     <div
@@ -1208,263 +1213,318 @@ const QuantumCircuit = ({ numQubits, setNumQubits }) => {
                             minWidth: "300px",
                         }}
                     >
-                        <h2>{getRotationModalContent().title}</h2>
+                        <p style={{ color: "red", fontFamily: "monospace, monospace", fontWeight: "normal", marginBottom: "10px" }}>
+                            Number of Qubits must be greater than or equal to 1.
+                        </p>
                         <div style={{ margin: "20px 0" }}>
-                            <MathJax>{getRotationModalContent().latex}</MathJax>
+                            <MathJax>{"$$\\text{numQubits}\\geq1$$"}</MathJax>
                         </div>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setDelQubError(false);
+                            }}
+                            style={{ marginRight: "10px" }}
+                        >
+                            Okay
+                        </Button>
+                    </div>
+                </div>
+            )
+            }
+
+            {/* ROTATION/PHASE GATE MODAL */}
+            {
+                rotationModalOpen && (
+                    <div
+                        onClick={handleRotationCancel}
+                        style={{
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            width: "100vw",
+                            height: "100vh",
+                            background: "rgba(0,0,0,0.5)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            zIndex: 1001,
+                        }}
+                    >
                         <div
+                            onClick={(e) => e.stopPropagation()}
                             style={{
-                                margin: "10px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
+                                background: "white",
+                                padding: "20px",
+                                borderRadius: "10px",
+                                textAlign: "center",
+                                minWidth: "300px",
                             }}
                         >
-                            <label style={{ marginRight: "10px" }}>θ (degrees): </label>
-                            <input
-                                type="number"
-                                min="1"
-                                max="360"
-                                value={rotationValue}
-                                onChange={handleRotationInputChange}
-                                style={{ width: "80px", padding: "4px" }}
-                            />
-                        </div>
-                        <div style={{ margin: "10px" }}>
-                            <input
-                                type="range"
-                                min="1"
-                                max="360"
-                                step="1"
-                                value={rotationValue}
-                                onChange={handleRotationInputChange}
-                                style={{ width: "100%" }}
-                            />
+                            <h2>{getRotationModalContent().title}</h2>
+                            <div style={{ margin: "20px 0" }}>
+                                <MathJax>{getRotationModalContent().latex}</MathJax>
+                            </div>
                             <div
                                 style={{
-                                    fontSize: "12px",
-                                    color: "#666",
-                                    marginTop: "5px",
+                                    margin: "10px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
                                 }}
                             >
-                                Note: Angle must be between 1° and 360°
+                                <label style={{ marginRight: "10px" }}>θ (degrees): </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="360"
+                                    value={rotationValue}
+                                    onChange={handleRotationInputChange}
+                                    style={{ width: "80px", padding: "4px" }}
+                                />
                             </div>
+                            <div style={{ margin: "10px" }}>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="360"
+                                    step="1"
+                                    value={rotationValue}
+                                    onChange={handleRotationInputChange}
+                                    style={{ width: "100%" }}
+                                />
+                                <div
+                                    style={{
+                                        fontSize: "12px",
+                                        color: "#666",
+                                        marginTop: "5px",
+                                    }}
+                                >
+                                    Note: Angle must be between 1° and 360°
+                                </div>
+                            </div>
+                            <Button
+                                variant="outline"
+                                onClick={handleRotationConfirm}
+                                style={{ marginRight: "10px" }}
+                            >
+                                Confirm
+                            </Button>
+                            <Button variant="outline" onClick={handleRotationCancel}>
+                                Cancel
+                            </Button>
                         </div>
-                        <Button
-                            variant="outline"
-                            onClick={handleRotationConfirm}
-                            style={{ marginRight: "10px" }}
-                        >
-                            Confirm
-                        </Button>
-                        <Button variant="outline" onClick={handleRotationCancel}>
-                            Cancel
-                        </Button>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* CNOT MODAL */}
-            {cnotModalOpen && (
-                <div
-                    onClick={handleCnotCancel}
-                    style={{
-                        position: "fixed",
-                        top: 0,
-                        left: 0,
-                        width: "100vw",
-                        height: "100vh",
-                        background: "rgba(0,0,0,0.5)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                    }}
-                >
+            {
+                cnotModalOpen && (
                     <div
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={handleCnotCancel}
                         style={{
-                            background: "white",
-                            padding: "20px",
-                            borderRadius: "10px",
-                            textAlign: "center",
-                            minWidth: "300px",
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            width: "100vw",
+                            height: "100vh",
+                            background: "rgba(0,0,0,0.5)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                         }}
                     >
-                        <h2>Select Control and Target Qubit</h2>
-                        <div style={{ margin: "10px" }}>
-                            <label>Control Qubit: </label>
-                            <select
-                                value={cnotControl}
-                                onChange={(e) => setCnotControl(Number(e.target.value))}
-                            >
-                                {Array.from({ length: numQubits }).map((_, i) => (
-                                    <option key={i} value={i}>
-                                        Q{i}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div style={{ margin: "10px" }}>
-                            <label>Target Qubit: </label>
-                            <select
-                                value={cnotTarget}
-                                onChange={(e) => setCnotTarget(Number(e.target.value))}
-                            >
-                                {Array.from({ length: numQubits }).map((_, i) => (
-                                    <option key={i} value={i}>
-                                        Q{i}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <Button
-                            variant="outline"
-                            onClick={handleCnotConfirm}
-                            style={{ marginRight: "10px" }}
+                        <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                background: "white",
+                                padding: "20px",
+                                borderRadius: "10px",
+                                textAlign: "center",
+                                minWidth: "300px",
+                            }}
                         >
-                            Confirm
-                        </Button>
-                        <Button variant="outline" onClick={handleCnotCancel}>
-                            Cancel
-                        </Button>
+                            <h2>Select Control and Target Qubit</h2>
+                            <div style={{ margin: "10px" }}>
+                                <label>Control Qubit: </label>
+                                <select
+                                    value={cnotControl}
+                                    onChange={(e) => setCnotControl(Number(e.target.value))}
+                                >
+                                    {Array.from({ length: numQubits }).map((_, i) => (
+                                        <option key={i} value={i}>
+                                            Q{i}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div style={{ margin: "10px" }}>
+                                <label>Target Qubit: </label>
+                                <select
+                                    value={cnotTarget}
+                                    onChange={(e) => setCnotTarget(Number(e.target.value))}
+                                >
+                                    {Array.from({ length: numQubits }).map((_, i) => (
+                                        <option key={i} value={i}>
+                                            Q{i}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <Button
+                                variant="outline"
+                                onClick={handleCnotConfirm}
+                                style={{ marginRight: "10px" }}
+                            >
+                                Confirm
+                            </Button>
+                            <Button variant="outline" onClick={handleCnotCancel}>
+                                Cancel
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* CZ MODAL */}
-            {czModalOpen && (
-                <div
-                    onClick={handleCzCancel}
-                    style={{
-                        position: "fixed",
-                        top: 0,
-                        left: 0,
-                        width: "100vw",
-                        height: "100vh",
-                        background: "rgba(0,0,0,0.5)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                    }}
-                >
+            {
+                czModalOpen && (
                     <div
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={handleCzCancel}
                         style={{
-                            background: "white",
-                            padding: "20px",
-                            borderRadius: "10px",
-                            textAlign: "center",
-                            minWidth: "300px",
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            width: "100vw",
+                            height: "100vh",
+                            background: "rgba(0,0,0,0.5)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                         }}
                     >
-                        <h2>Select Control and Target Qubit (CZ)</h2>
-                        <div style={{ margin: "10px" }}>
-                            <label>Control Qubit: </label>
-                            <select
-                                value={czControl}
-                                onChange={(e) => setCzControl(Number(e.target.value))}
-                            >
-                                {Array.from({ length: numQubits }).map((_, i) => (
-                                    <option key={i} value={i}>
-                                        Q{i}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div style={{ margin: "10px" }}>
-                            <label>Target Qubit: </label>
-                            <select
-                                value={czTarget}
-                                onChange={(e) => setCzTarget(Number(e.target.value))}
-                            >
-                                {Array.from({ length: numQubits }).map((_, i) => (
-                                    <option key={i} value={i}>
-                                        Q{i}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <Button
-                            variant="outline"
-                            onClick={handleCzConfirm}
-                            style={{ marginRight: "10px" }}
+                        <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                background: "white",
+                                padding: "20px",
+                                borderRadius: "10px",
+                                textAlign: "center",
+                                minWidth: "300px",
+                            }}
                         >
-                            Confirm
-                        </Button>
-                        <Button variant="outline" onClick={handleCzCancel}>
-                            Cancel
-                        </Button>
+                            <h2>Select Control and Target Qubit (CZ)</h2>
+                            <div style={{ margin: "10px" }}>
+                                <label>Control Qubit: </label>
+                                <select
+                                    value={czControl}
+                                    onChange={(e) => setCzControl(Number(e.target.value))}
+                                >
+                                    {Array.from({ length: numQubits }).map((_, i) => (
+                                        <option key={i} value={i}>
+                                            Q{i}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div style={{ margin: "10px" }}>
+                                <label>Target Qubit: </label>
+                                <select
+                                    value={czTarget}
+                                    onChange={(e) => setCzTarget(Number(e.target.value))}
+                                >
+                                    {Array.from({ length: numQubits }).map((_, i) => (
+                                        <option key={i} value={i}>
+                                            Q{i}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <Button
+                                variant="outline"
+                                onClick={handleCzConfirm}
+                                style={{ marginRight: "10px" }}
+                            >
+                                Confirm
+                            </Button>
+                            <Button variant="outline" onClick={handleCzCancel}>
+                                Cancel
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* SWAP MODAL */}
-            {swapModalOpen && (
-                <div
-                    onClick={handleSwapCancel}
-                    style={{
-                        position: "fixed",
-                        top: 0,
-                        left: 0,
-                        width: "100vw",
-                        height: "100vh",
-                        background: "rgba(0,0,0,0.5)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                    }}
-                >
+            {
+                swapModalOpen && (
                     <div
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={handleSwapCancel}
                         style={{
-                            background: "white",
-                            padding: "20px",
-                            borderRadius: "10px",
-                            textAlign: "center",
-                            minWidth: "300px",
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            width: "100vw",
+                            height: "100vh",
+                            background: "rgba(0,0,0,0.5)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                         }}
                     >
-                        <h2>Select Qubits to SWAP</h2>
-                        <div style={{ margin: "10px" }}>
-                            <label>Qubit A: </label>
-                            <select
-                                value={swapQubit1}
-                                onChange={(e) => setSwapQubit1(Number(e.target.value))}
-                            >
-                                {Array.from({ length: numQubits }).map((_, i) => (
-                                    <option key={i} value={i}>
-                                        Q{i}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div style={{ margin: "10px" }}>
-                            <label>Qubit B: </label>
-                            <select
-                                value={swapQubit2}
-                                onChange={(e) => setSwapQubit2(Number(e.target.value))}
-                            >
-                                {Array.from({ length: numQubits }).map((_, i) => (
-                                    <option key={i} value={i}>
-                                        Q{i}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <Button
-                            variant="outline"
-                            onClick={handleSwapConfirm}
-                            style={{ marginRight: "10px" }}
+                        <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                background: "white",
+                                padding: "20px",
+                                borderRadius: "10px",
+                                textAlign: "center",
+                                minWidth: "300px",
+                            }}
                         >
-                            Confirm
-                        </Button>
-                        <Button variant="outline" onClick={handleSwapCancel}>
-                            Cancel
-                        </Button>
+                            <h2>Select Qubits to SWAP</h2>
+                            <div style={{ margin: "10px" }}>
+                                <label>Qubit A: </label>
+                                <select
+                                    value={swapQubit1}
+                                    onChange={(e) => setSwapQubit1(Number(e.target.value))}
+                                >
+                                    {Array.from({ length: numQubits }).map((_, i) => (
+                                        <option key={i} value={i}>
+                                            Q{i}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div style={{ margin: "10px" }}>
+                                <label>Qubit B: </label>
+                                <select
+                                    value={swapQubit2}
+                                    onChange={(e) => setSwapQubit2(Number(e.target.value))}
+                                >
+                                    {Array.from({ length: numQubits }).map((_, i) => (
+                                        <option key={i} value={i}>
+                                            Q{i}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <Button
+                                variant="outline"
+                                onClick={handleSwapConfirm}
+                                style={{ marginRight: "10px" }}
+                            >
+                                Confirm
+                            </Button>
+                            <Button variant="outline" onClick={handleSwapCancel}>
+                                Cancel
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            )}
-        </MathJaxContext>
+                )
+            }
+        </MathJaxContext >
     );
 };
 
