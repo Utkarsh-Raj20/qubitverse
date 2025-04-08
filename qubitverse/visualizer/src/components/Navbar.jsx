@@ -12,8 +12,8 @@ const Navbar = () => {
     }, [darkTheme]);
 
     return (
-        <nav className="flex items-center justify-between px-6 py-4 bg-gray-100 dark:bg-gray-800 shadow">
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white" style={{ userSelect: "none" }}>
+        <nav className="flex items-center justify-between px-6 py-2 bg-gray-100 dark:bg-gray-800 shadow">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white" style={{ userSelect: "none" }}>
                 <div style={{
                     backgroundColor: "rgba(50, 61, 76, 0.2)",
                     borderRadius: "8px",
