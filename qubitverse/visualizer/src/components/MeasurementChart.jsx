@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 
+function array_to_freq_table(a) {
+    const data = new Map();
+    a.forEach(i => { data.set(i, (data.get(i) || 0) + 1); });
+    return Array.from(data, ([val, freq]) => ({ val, freq }));
+}
+
 export default function MeasurementChart({ hist }) {
     // hist is a list of numbers, we need to convert it into freq. table that means how much an item has occurred in the list
     const [activeIndex, setActiveIndex] = useState(null);
-    const data = new Map();
-    hist.forEach(i => { data.set(i, (data.get(i) || 0) + 1); });
-    const freqTable = Array.from(data, ([val, freq]) => ({ val, freq }));
+    const freqTable = array_to_freq_table(hist);
     return (
         <div style={{
             width: "100%",
