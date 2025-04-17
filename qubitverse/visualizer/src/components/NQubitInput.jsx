@@ -36,7 +36,7 @@ function NQubitInput({ setQubits }) {
         setTempQ(e.target.value);
         const parsed = validate_input(e.target.value);
 
-        if (error == '' && parsed !== null) {
+        if (error == '' || parsed !== null) {
             const newData = [];
             for (let i = 1; i <= parsed; i++) {
                 newData.push({
@@ -75,31 +75,10 @@ function NQubitInput({ setQubits }) {
             display: "flex"
         }}>
             <div style={{ height: "600px", width: "50%" }}>
-                <textarea
-                    readOnly
-                    value={`A qubit (quantum bit) is the fundamental unit of quantum information.
-Unlike classical bits which are either 0 or 1, a qubit can be in a superposition           ds
-of both 0 and 1 states at the same time. This allows quantum computers to
-perform complex calculations much faster than classical computers in some cases.`}
-                    style={{
-                        width: '100%',
-                        height: '50%',
-                        padding: '12px',
-                        fontSize: '14px',
-                        fontFamily: 'monospace, monospace',
-                        resize: 'none',
-                        backgroundColor: '#f0f0f0',
-                        color: '#333',
-                        borderRadius: '8px',
-                        border: '1px solid #ccc',
-                        marginBottom: '1rem',
-                        whiteSpace: 'pre-wrap'
-                    }}
-                />
                 <div style={{ height: "480px", width: "100%", marginLeft: "20px" }}>
                     {lineData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={lineData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <ResponsiveContainer width="100%" height="100%" style={{ marginTop: "100px", marginLeft: "30px" }}>
+                            <LineChart data={lineData} margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="qubits" label={{ value: 'Qubits', position: 'insideBottom', offset: -5 }} />
                                 <YAxis
