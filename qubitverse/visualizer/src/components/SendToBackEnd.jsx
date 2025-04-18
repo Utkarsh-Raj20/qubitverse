@@ -84,7 +84,7 @@ function quantum_encode(cktData, feature) {
 export function SendToBackEnd_Calculate({ gates, cnotGates, czGates, swapGates, measureNthQ, numQubits, setLog, setProbData, setEdgesResultGraph, setVerticesResultGraph, setMeasuredValue, setMeasurementHist, funcAddQubits, funcRemoveQubits }) {
     const request_backend = async (dat) => {
         try {
-            const response = await fetch('http://20.2.90.168:8080', {
+            const response = await fetch('http://20.2.90.168:8080/api/endpoint', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'text/plain',
